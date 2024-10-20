@@ -1,32 +1,58 @@
-# Prerequisites
-*.d
+# Created by https://www.toptal.com/developers/gitignore/api/visualstudiocode,cmake
+# Edit at https://www.toptal.com/developers/gitignore?templates=visualstudiocode,cmake
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
+### CMake ###
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
 
-# Precompiled Headers
-*.gch
-*.pch
+### CMake Patch ###
+# External projects
+*-prefix/
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
+### VisualStudioCode ###
+.vscode/*
 
-# Fortran module files
-*.mod
-*.smod
+### Eclipse ###
+*.cproject
+*.project
+.settings/language.settings.xml
 
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
 
-# Executables
-*.exe
-*.out
-*.app
+### DEVCONTAINER ###
+.devcontainer/*
+
+
+### ESP-IDF ###
+build/
+sdkconfig
+sdkconfig.*
+
+# Local History for Visual Studio Code
+.history/
+
+# Built Visual Studio Code Extensions
+*.vsix
+
+#Doxygen generated files
+docs/html/**
+
+### VisualStudioCode Patch ###
+# Ignore all local history of files
+.history
+.ionide
+
+logs
+snyk-macos
+
+### personal configs ###
+./config.h
+./personal_config.h
