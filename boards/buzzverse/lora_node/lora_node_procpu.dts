@@ -1,0 +1,165 @@
+/*
+ * Copyright (c) 2024 BuzzVerse.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+
+#include <zephyr/dt-bindings/input/input-event-codes.h>
+#include <espressif/esp32s3/esp32s3_wroom_n16.dtsi>
+#include "lora_node-pinctrl.dtsi"
+
+/ {
+	model = "BuzzVerse Node ESP32S3 PROCPU";
+	compatible = "espressif,esp32s3";
+
+	chosen {
+		zephyr,sram = &sram0;
+		zephyr,console = &usb_serial;
+		zephyr,shell-uart = &usb_serial;
+		zephyr,flash = &flash0;
+		zephyr,code-partition = &slot0_partition;
+		zephyr,bt-hci = &esp32_bt_hci;
+	};
+
+	aliases {
+		i2c-0 = &i2c0;
+		watchdog0 = &wdt0;
+		led0 = &led0;
+		led1 = &led1;
+		sw0 = &button0;
+		bme280-i2c = &i2c0;
+		bq27441-i2c = &i2c0;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		led0: led_0 {
+			gpios = <&gpio0 7 GPIO_ACTIVE_HIGH>;
+			label = "BUILTIN LED";
+		};
+		led1: led_1 {
+			gpios = <&gpio0 14 GPIO_ACTIVE_HIGH>;
+			label = "BUILTIN LED";
+		};
+	};
+
+	buttons {
+    compatible = "gpio-keys";
+    button0: button_0 {
+      gpios = <&gpio0 1 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+      zephyr,code = <INPUT_KEY_0>;
+    };
+	};
+
+};
+
+&usb_serial {
+	status = "okay";
+};
+
+&uart0 {
+	status = "okay";
+	current-speed = <115200>;
+	pinctrl-0 = <&uart0_default>;
+	pinctrl-names = "default";
+};
+
+&i2c0 {
+	status = "okay";
+	clock-frequency = <I2C_BITRATE_STANDARD>;
+	pinctrl-0 = <&i2c0_default>;
+	pinctrl-names = "default";
+
+	bme280@76 {
+    compatible = "bosch,bme280";
+    reg = <0x76>;
+    status = "okay";
+  };
+
+	bq27441@55 {
+    compatible = "ti,bq27441";
+    reg = <0x55>;
+    status = "okay";
+	};
+};
+
+&spi2 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+	pinctrl-0 = <&spim2_default>;
+	pinctrl-names = "default";
+};
+
+&flash0 {
+	status = "okay";
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		/* Reserve 64kB for the bootloader */
+		boot_partition: partition@0 {
+			label = "mcuboot";
+			reg = <0x00000000 0x00010000>;
+			read-only;
+		};
+
+		/* Reserve 1024kB for the application in slot 0 */
+		slot0_partition: partition@10000 {
+			label = "image-0";
+			reg = <0x00010000 0x00100000>;
+		};
+
+		/* Reserve 1024kB for the application in slot 1 */
+		slot1_partition: partition@110000 {
+			label = "image-1";
+			reg = <0x00110000 0x00100000>;
+		};
+
+		/* Reserve 256kB for the scratch partition */
+		scratch_partition: partition@210000 {
+			   label = "image-scratch";
+			   reg = <0x00210000 0x00040000>;
+		};
+
+		storage_partition: partition@250000 {
+			label = "storage";
+			reg = <0x00250000 0x00006000>;
+		};
+	};
+};
+
+&gpio0 {
+	status = "okay";
+};
+
+&trng0 {
+	status = "okay";
+};
+
+&wdt0 {
+	status = "okay";
+};
+
+&timer0 {
+	status = "disabled";
+};
+
+&timer1 {
+	status = "disabled";
+};
+
+&timer2 {
+	status = "disabled";
+};
+
+&timer3 {
+	status = "disabled";
+};
+
+&esp32_bt_hci {
+	status = "okay";
+};
