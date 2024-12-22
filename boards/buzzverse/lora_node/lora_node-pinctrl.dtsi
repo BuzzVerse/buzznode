@@ -5,7 +5,7 @@
  */
 
 #include <zephyr/dt-bindings/pinctrl/esp-pinctrl-common.h>
-#include <dt-bindings/pinctrl/esp32s3-pinctrl.h>
+#include <zephyr/dt-bindings/pinctrl/esp32s3-pinctrl.h>
 #include <zephyr/dt-bindings/pinctrl/esp32s3-gpio-sigmap.h>
 
 &pinctrl {
@@ -22,23 +22,64 @@
 
 	spim2_default: spim2_default {
 		group1 {
-      pinmux = <SPIM2_MISO_GPIO13>,
-               <SPIM2_SCLK_GPIO12>,
-               <SPIM2_CSEL_GPIO10>;
-    };
-    group2 {
-      pinmux = <SPIM2_MOSI_GPIO11>;
-      output-low;
+      pinmux = 
+					 	<SPIM2_MOSI_GPIO11>, // MOSI
+					 	<SPIM2_MISO_GPIO13>, // MISO
+					 	<SPIM2_SCLK_GPIO12>, // SCK
+					 	<SPIM2_CSEL_GPIO10>; // NSS (CS)
     };
 	};
 
 	i2c0_default: i2c0_default {
 		group1 {
-			pinmux = <I2C0_SDA_GPIO17>,
-				       <I2C0_SCL_GPIO18>;
+			pinmux = 
+						<I2C0_SDA_GPIO17>,
+				    <I2C0_SCL_GPIO18>;
 			bias-pull-up;
 			drive-open-drain;
 			output-high;
 		};
+	};
+};
+
+/ {
+	lora_node_d: connector {
+		compatible = "espressif,node-gpio";
+		#gpio-cells = <2>;
+		gpio-map-mask = <0xffffffff 0xffffffc0>;
+		gpio-map-pass-thru = <0 0x3f>;
+		gpio-map = 
+			/* User Interaction */
+			<0 0 &gpio0 1 0>,    /* USER_BUTTON */
+			<1 0 &gpio0 2 0>,    /* LOW_BATTERY */
+			
+			/* Test Points */
+			<2 0 &gpio0 3 0>,    /* TP15 */
+			<3 0 &gpio0 4 0>,    /* TP16 */
+
+			/* Peripheral Control & Indicators */
+			<4 0 &gpio0 5 0>,    /* PERIPHERAL_OVERCURRENT */
+			<5 0 &gpio0 6 0>,    /* PERIPHERAL_ENABLED */
+			<8 0 &gpio0 9 0>,    /* SUPP_SRC_INDICATOR */
+
+			/* LEDs */
+			<6 0 &gpio0 7 0>,    /* LED0 */
+			<13 0 &gpio0 14 0>,  /* LED1 */
+
+			/* UEXT Signals */
+			<7 0 &gpio0 8 0>,    /* UEXT_SSEL */
+			<14 0 &gpio0 17 0>,  /* UEXT_SDA */
+			<15 0 &gpio0 18 0>,  /* UEXT_SCL */
+
+			/* LoRa Interface */
+			<9 0 &gpio0 10 0>,   /* LORA_NSS */
+			<10 0 &gpio0 11 0>,  /* LORA_MOSI */
+			<11 0 &gpio0 12 0>,  /* LORA_SCK */
+			<12 0 &gpio0 13 0>,  /* LORA_MISO */
+			<18 0 &gpio0 46 0>,  /* LORA_DIO0 */
+
+			/* USB Differential Pairs */
+			<16 0 &gpio0 19 0>,  /* D- */
+			<17 0 &gpio0 20 0>;  /* D+ */
 	};
 };

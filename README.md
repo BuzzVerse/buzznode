@@ -4,6 +4,8 @@
   <img alt="Documentation" src="https://img.shields.io/badge/documentation-3D578C?logo=sphinx&logoColor=white">
 </a>
 
+https://github.com/zephyrproject-rtos/example-application
+
 ## Getting Started
 
 Before getting started, make sure you have a proper Zephyr development
@@ -17,39 +19,30 @@ the ``example-application`` and all Zephyr modules will be cloned. Run the follo
 command:
 
 ```shell
-# initialize my-workspace for the example-application (main branch)
-west init -m https://github.com/zephyrproject-rtos/example-application --mr main my-workspace
-# update Zephyr modules
-cd my-workspace
+source ~/zephyrproject/.venv/bin/activate
+
+git clone https://github.com/BuzzVerse/buzznode.git -b zephyr-workspace --recurse-submodules
+west init -l buzznode
+cd buzznode
 west update
+west blobs fetch hal_espressif
 ```
 
 ### Building and running
 
 To build the application, run the following command:
-
 ```shell
-cd example-application
-west build -b $BOARD app
-```
-
-where `$BOARD` is the target board.
-
-You can use the `custom_plank` board found in this
-repository. Note that Zephyr sample boards may be used if an
-appropriate overlay is provided (see `app/boards`).
-
-A sample debug configuration is also provided. To apply it, run the following
-command:
-
-```shell
-west build -b $BOARD app -- -DEXTRA_CONF_FILE=debug.conf
+west build -b lora_node/esp32s3/procpu -p always app -- -DEXTRA_CONF_FILE=debug.conf
 ```
 
 Once you have built the application, run the following command to flash it:
-
 ```shell
-west flash
+west flash --esp-device /dev/cu.usbmodem101
+```
+
+Monitor logs:
+```shell
+west espressif monitor -p /dev/cu.usbmodem101
 ```
 
 ### Testing

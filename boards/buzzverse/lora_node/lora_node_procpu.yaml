@@ -2,7 +2,7 @@ identifier: lora_node/esp32s3
 vendor: buzzverse
 name: BuzzVerse ESP32S3 PROCPU
 type: mcu
-arch: arm
+arch: xtensa
 toolchain:
   - zephyr
 supported:
@@ -16,7 +16,7 @@ supported:
   - entropy
   - pwm
   - dma
-  - flash
+  - lora
 testing:
   ignore_tags:
     - net
