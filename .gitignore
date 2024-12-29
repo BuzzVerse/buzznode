@@ -1,16 +1,58 @@
-# editors
-.vscode
-*.swp
-*~
+# Created by https://www.toptal.com/developers/gitignore/api/visualstudiocode,cmake
+# Edit at https://www.toptal.com/developers/gitignore?templates=visualstudiocode,cmake
 
-# python
-.venv
+### CMake ###
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
 
-# build
-/build*
-/twister-out*
+### CMake Patch ###
+# External projects
+*-prefix/
 
-__pycache__/
+### VisualStudioCode ###
+.vscode/*
 
-# docs
-/doc/_build*
+### Eclipse ###
+*.cproject
+*.project
+.settings/language.settings.xml
+
+
+### DEVCONTAINER ###
+.devcontainer/*
+
+
+### ESP-IDF ###
+build/
+sdkconfig
+sdkconfig.*
+
+# Local History for Visual Studio Code
+.history/
+
+# Built Visual Studio Code Extensions
+*.vsix
+
+#Doxygen generated files
+docs/html/**
+
+### VisualStudioCode Patch ###
+# Ignore all local history of files
+.history
+.ionide
+
+logs
+snyk-macos
+
+### personal configs ###
+./config.h
+./personal_config.h
