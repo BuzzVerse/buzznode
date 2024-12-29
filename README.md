@@ -1,8 +1,4 @@
-# Zephyr Example Application
-
-<a href="https://zephyrproject-rtos.github.io/example-application">
-  <img alt="Documentation" src="https://img.shields.io/badge/documentation-3D578C?logo=sphinx&logoColor=white">
-</a>
+# Zephyr BuzzNode
 
 https://github.com/zephyrproject-rtos/example-application
 
@@ -13,10 +9,6 @@ environment. Follow the official
 [Zephyr Getting Started Guide](https://docs.zephyrproject.org/latest/getting_started/index.html).
 
 ### Initialization
-
-The first step is to initialize the workspace folder (``my-workspace``) where
-the ``example-application`` and all Zephyr modules will be cloned. Run the following
-command:
 
 ```shell
 source ~/zephyrproject/.venv/bin/activate
@@ -30,9 +22,15 @@ west blobs fetch hal_espressif
 
 ### Building and running
 
+First time system build:
+```shell
+west build -b lora_node/esp32s3/procpu -p always app --sysbuild
+west flash --esp-device /dev/cu.usbmodem101
+```
+
 To build the application, run the following command:
 ```shell
-west build -b lora_node/esp32s3/procpu -p always app -- -DEXTRA_CONF_FILE=debug.conf
+west build -b lora_node/esp32s3/procpu -p always app
 ```
 
 Once you have built the application, run the following command to flash it:
