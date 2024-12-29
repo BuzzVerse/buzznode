@@ -1,9 +1,8 @@
-cmake_minimum_required(VERSION 3.13.1)
-find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
+# This CMake file is picked by the Zephyr build system because it is defined
+# as the module CMake entry point (see zephyr/module.yml).
 
-project(buzznode)
 
-add_subdirectory(libs/etl)
+# This is needed so that custom driver classes using system calls are taken into
+# account
 
-target_sources(app PRIVATE src/main.cpp)
-target_link_libraries(app PRIVATE etl::etl)
+add_subdirectory(lib)
