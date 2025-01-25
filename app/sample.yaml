@@ -1,0 +1,16 @@
+# This file is provided so that the application can be compiled using Twister,
+# the Zephyr testing tool. In this file, multiple combinations can be specified,
+# so that you can easily test all of them locally or in CI.
+sample:
+  description: BuzzVerse node application
+  name: buzznode
+common:
+  build_only: true
+  integration_platforms:
+    - lora_node
+    - esp32s3
+tests:
+  app.default: {}
+  app.debug:
+    extra_overlay_confs:
+      - debug.conf

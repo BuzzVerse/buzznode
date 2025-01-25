@@ -1,0 +1,8 @@
+# BuzzVers ESP32S3 board configuration.
+
+# Copyright (c) 2024 BuzzVerse.
+# SPDX-License-Identifier: Apache-2.0
+
+config BOARD_LORA_NODE
+	select SOC_ESP32S3_WROOM_N16
+	select SOC_ESP32S3_PROCPU if BOARD_LORA_NODE_ESP32S3_PROCPU

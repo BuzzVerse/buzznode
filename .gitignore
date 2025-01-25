@@ -56,3 +56,20 @@ snyk-macos
 ### personal configs ###
 ./config.h
 ./personal_config.h
+
+# editors
+.vscode
+*.swp
+*~
+
+# python
+.venv
+
+# build
+/build*
+/twister-out*
+
+__pycache__/
+
+# docs
+/doc/_build*

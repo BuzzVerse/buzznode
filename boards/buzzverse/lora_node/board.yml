@@ -1,0 +1,6 @@
+board:
+  name: lora_node
+  full_name: BuzzVerse Node ESP32S3
+  vendor: buzzverse
+  socs:
+  - name: esp32s3
