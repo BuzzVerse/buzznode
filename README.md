@@ -17,14 +17,14 @@ environment. Follow the official
 ```shell
 source ~/zephyrproject/.venv/bin/activate
 
-git clone https://github.com/BuzzVerse/buzznode.git -b zephyr-workspace --recurse-submodules
-west init -l buzznode
+west init -m https://github.com/BuzzVerse/buzznode --mr main buzznode
 cd buzznode
 west update
 west blobs fetch hal_espressif
+west blobs fetch hal_stm32
 ```
 
-### Building and running
+### Building and running BuzzNode ESP32
 
 First time system build:
 ```shell
@@ -45,6 +45,22 @@ west flash --esp-device /dev/cu.usbmodem101
 Monitor logs:
 ```shell
 west espressif monitor -p /dev/cu.usbmodem101
+```
+
+### Building and running STM32
+Build:
+```shell
+west build -b nucleo_wl55jc -p always app --sysbuild
+```
+
+Flash:
+```shell
+west flash
+```
+
+Monitor logs:
+```shell
+minicom -D /dev/cu.usbmodem101
 ```
 
 ### Testing

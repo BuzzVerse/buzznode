@@ -9,6 +9,6 @@ find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 
 project(app LANGUAGES C)
 
-FILE(GLOB app_sources src/main.cpp)
+FILE(GLOB app_sources src/*.cpp)
 target_sources(app PRIVATE ${app_sources})
 target_link_libraries(app PRIVATE etl::etl)
