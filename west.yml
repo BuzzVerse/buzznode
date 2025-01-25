@@ -9,5 +9,7 @@ manifest:
       import:
         name-allowlist:
           - hal_espressif
+          - hal_stm32
+          - cmsis
           - loramac-node
           - mcuboot
