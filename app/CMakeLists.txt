@@ -11,6 +11,13 @@ project(app LANGUAGES CXX)
 file(GLOB_RECURSE app_sources src/*.cpp)
 target_sources(app PRIVATE ${app_sources})
 
+# Add include directories for cleaner imports
+target_include_directories(app PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/peripherals
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/sensors
+)
+
 # Set C++17 using compiler flags instead of target_compile_features
 set_target_properties(app PROPERTIES 
     CXX_STANDARD 17
