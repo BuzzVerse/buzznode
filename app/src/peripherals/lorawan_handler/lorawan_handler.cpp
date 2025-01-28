@@ -6,6 +6,7 @@
 #include <zephyr/lorawan/lorawan.h>
 
 #include "utils/hex.hpp"
+#include "utils/packet_handler.hpp"
 
 LOG_MODULE_REGISTER(lorawan_handler, LOG_LEVEL_DBG);
 
@@ -64,17 +65,23 @@ bool LoRaWANHandler::init() {
   return true;
 }
 
-void LoRaWANHandler::send_message(const char* msg) const {
-  etl::array<uint8_t, MAX_MSG_SIZE> buffer{};
-  size_t msg_len = strlen(msg);
-  size_t msg_size = etl::min(msg_len, MAX_MSG_SIZE);
+bool LoRaWANHandler::send_packet(const buzzverse_v1_Packet& packet) const {
+  uint8_t buffer[MAX_MSG_SIZE];
+  size_t size = 0;
 
-  memcpy(buffer.data(), msg, msg_size);
-
-  int ret = lorawan_send(2, buffer.data(), msg_size, LORAWAN_MSG_UNCONFIRMED);
-  if (ret < 0) {
-    LOG_ERR("lorawan_send failed: %d", ret);
-  } else {
-    LOG_INF("Message sent successfully: %s", msg);
+  // Encode the protobuf message
+  if (!PacketHandler::encode(packet, buffer, size)) {
+    LOG_ERR("Packet encoding failed");
+    return false;
   }
+
+  // Send the encoded message over LoRaWAN
+  int ret = lorawan_send(2, buffer, size, LORAWAN_MSG_UNCONFIRMED);
+  if (ret < 0) {
+    LOG_ERR("LoRaWAN send failed: %d", ret);
+    return false;
+  }
+
+  LOG_INF("Packet sent successfully (size: %zu bytes)", size);
+  return true;
 }

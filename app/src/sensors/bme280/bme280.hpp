@@ -4,9 +4,10 @@
 #include <etl/string.h>
 #include <zephyr/device.h>
 
+#include "protobufs/buzzverse/bme280.pb.h"
 #include "sensor.hpp"
 
-class BME280 : public Sensor {
+class BME280 : public Sensor<buzzverse_v1_BME280Data> {
  public:
   explicit BME280(const device* dev);
 
@@ -16,11 +17,11 @@ class BME280 : public Sensor {
     return ready;
   }
 
-  etl::string<64> get_name() const override {
+  etl::string<PERIPHERAL_NAME_SIZE> get_name() const override {
     return "BME280";
   }
 
-  void read_data(etl::string<64>& msg, uint32_t counter) const override;
+  void read_data(buzzverse_v1_BME280Data* data) const override;
 
  private:
   const device* bme280_dev;

@@ -3,6 +3,8 @@
 #include <zephyr/drivers/sensor.h>
 #include <zephyr/logging/log.h>
 
+#include "protobufs/buzzverse/bme280.pb.h"
+
 LOG_MODULE_REGISTER(bme280, LOG_LEVEL_DBG);
 
 BME280::BME280(const device* dev) : bme280_dev(dev) {}
@@ -18,12 +20,11 @@ bool BME280::init() {
   return true;
 }
 
-void BME280::read_data(etl::string<64>& msg, uint32_t counter) const {
+void BME280::read_data(buzzverse_v1_BME280Data* data) const {
   struct sensor_value temp, press, humidity;
 
-  int rc = sensor_sample_fetch(bme280_dev);
-  if (rc != 0) {
-    LOG_ERR("sensor_sample_fetch failed: %d", rc);
+  if (sensor_sample_fetch(bme280_dev) != 0) {
+    LOG_ERR("Failed to fetch BME280 data");
     return;
   }
 
@@ -31,12 +32,9 @@ void BME280::read_data(etl::string<64>& msg, uint32_t counter) const {
   sensor_channel_get(bme280_dev, SENSOR_CHAN_PRESS, &press);
   sensor_channel_get(bme280_dev, SENSOR_CHAN_HUMIDITY, &humidity);
 
-  double temp_val = temp.val1 + (temp.val2 / 1000000.0);
-  double hum_val = humidity.val1 + (humidity.val2 / 1000000.0);
-  double pressure_hpa = (press.val1 * 10) + (press.val2 * 10.0 / 1000000.0);
-
-  char buffer[64];
-  snprintf(buffer, sizeof(buffer), "%u. %.1f °C, %.1f %%, %.1f hPa", counter, temp_val, hum_val,
-           pressure_hpa);
-  msg = buffer;
+  // Convert sensor values to protobuf-compatible integers
+  data->temperature =
+    static_cast<uint32_t>((temp.val1 * 100) + (temp.val2 / 10000));  // centi-degrees
+  data->pressure = static_cast<uint32_t>((press.val1 * 10) + (press.val2 / 100000));        // hPa
+  data->humidity = static_cast<uint32_t>((humidity.val1 * 10) + (humidity.val2 / 100000));  // %
 }

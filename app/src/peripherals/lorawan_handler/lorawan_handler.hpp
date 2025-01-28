@@ -5,6 +5,7 @@
 #include <etl/string.h>
 
 #include "peripheral.hpp"
+#include "protobufs/buzzverse/packet.pb.h"
 
 class LoRaWANHandler : public Peripheral {
  public:
@@ -18,11 +19,11 @@ class LoRaWANHandler : public Peripheral {
     return connected;
   }
 
-  etl::string<64> get_name() const override {
+  etl::string<PERIPHERAL_NAME_SIZE> get_name() const override {
     return "LoRaWAN";
   }
 
-  void send_message(const char* msg) const;
+  bool send_packet(const buzzverse_v1_Packet& packet) const;
 
  private:
   bool connected{false};
