@@ -1,3 +1,6 @@
 [submodule "lib/etl"]
 	path = lib/etl
 	url = https://github.com/ETLCPP/etl.git
+[submodule "app/protobufs"]
+	path = app/protobufs
+	url = https://github.com/BuzzVerse/buzzybufs.git

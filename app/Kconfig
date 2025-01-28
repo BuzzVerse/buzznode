@@ -1,0 +1,34 @@
+menu "Zephyr"
+
+config LORAMAC_REGION_EU433
+    bool
+    default y if BOARD_LORA_NODE_ESP32S3_PROCPU
+
+config LORAMAC_REGION_EU868
+    bool
+    default y if BOARD_NUCLEO_WL55JC
+
+config LORAWAN_DEV_EUI
+    string "Device EUI"
+    default "0000000000000000"
+    help
+      LoRaWAN Device EUI in hex format (16 characters) MSB first
+
+config LORAWAN_JOIN_EUI
+    string "Join EUI"
+    default "0000000000000000"
+    help
+      LoRaWAN Join EUI (AppEUI) in hex format (16 characters) MSB first
+
+config LORAWAN_APP_KEY
+    string "Application Key"
+    default "00000000000000000000000000000000"
+    help
+      LoRaWAN Application Key in hex format (32 characters) MSB first
+
+source "Kconfig.zephyr"
+endmenu
+
+module = APP
+module-str = APP
+source "subsys/logging/Kconfig.template.log_config"

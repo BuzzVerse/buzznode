@@ -1,0 +1,6 @@
+west-commands:
+  - file: scripts/register_device_command.py
+    commands:
+      - name: register-device
+        class: RegisterDeviceCommand
+        help: Register BuzzNode device

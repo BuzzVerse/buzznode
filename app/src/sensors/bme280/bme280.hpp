@@ -11,9 +11,11 @@ class BME280 : public Sensor {
   explicit BME280(const device* dev);
 
   bool init() override;
+
   bool is_ready() const override {
     return ready;
   }
+
   etl::string<64> get_name() const override {
     return "BME280";
   }
@@ -22,7 +24,7 @@ class BME280 : public Sensor {
 
  private:
   const device* bme280_dev;
-  bool ready = false;
+  bool ready{false};
 };
 
 #endif  // BME280_HPP

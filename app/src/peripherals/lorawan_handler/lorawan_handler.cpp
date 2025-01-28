@@ -5,7 +5,29 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/lorawan/lorawan.h>
 
+#include "utils/hex.hpp"
+
 LOG_MODULE_REGISTER(lorawan_handler, LOG_LEVEL_DBG);
+
+LoRaWANHandler::LoRaWANHandler() {
+  const char* dev_eui_str = CONFIG_LORAWAN_DEV_EUI;
+  const char* join_eui_str = CONFIG_LORAWAN_JOIN_EUI;
+  const char* app_key_str = CONFIG_LORAWAN_APP_KEY;
+
+  LOG_INF("LoRaWAN Handler initialized");
+  LOG_INF("Device EUI: %s", dev_eui_str);
+  LOG_INF("Join EUI: %s", join_eui_str);
+  LOG_INF("App Key: %s", app_key_str);
+
+  for (size_t i = 0; i < 8; i++) {
+    dev_eui[i] = utils::hex2byte(&dev_eui_str[i * 2]);
+    join_eui[i] = utils::hex2byte(&join_eui_str[i * 2]);
+  }
+
+  for (size_t i = 0; i < 16; i++) {
+    app_key[i] = utils::hex2byte(&app_key_str[i * 2]);
+  }
+}
 
 bool LoRaWANHandler::init() {
   const device* lora_dev = DEVICE_DT_GET(DT_ALIAS(lora0));
@@ -14,8 +36,8 @@ bool LoRaWANHandler::init() {
     return false;
   }
 
-  lorawan_enable_adr(false);
-  lorawan_set_class(LORAWAN_CLASS_A);
+  // lorawan_enable_adr(false);
+  // lorawan_set_class(LORAWAN_CLASS_A);
 
   int ret = lorawan_start();
   if (ret < 0) {
