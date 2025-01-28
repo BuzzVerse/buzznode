@@ -16,3 +16,4 @@ manifest:
           - cmsis
           - loramac-node
           - mcuboot
+          - nanopb

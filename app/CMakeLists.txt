@@ -17,6 +17,15 @@ endif()
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(buzznode)
 
+list(APPEND CMAKE_MODULE_PATH ${ZEPHYR_BASE}/modules/nanopb)
+include(nanopb)
+
+# Find all proto files
+file(GLOB_RECURSE proto_files protobufs/*.proto)
+foreach(proto_file ${proto_files})
+    zephyr_nanopb_sources(app ${proto_file})
+endforeach()
+
 file(GLOB_RECURSE app_sources src/*.cpp)
 target_sources(app PRIVATE ${app_sources})
 
