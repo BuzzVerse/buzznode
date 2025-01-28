@@ -24,6 +24,13 @@ west blobs fetch hal_espressif
 west blobs fetch hal_stm32
 ```
 
+### Registering a device
+
+```shell
+west register-device --help
+west register-device --join-eui 70B3D57ED0000001
+```
+
 ### Building and running BuzzNode ESP32
 
 First time system build:
