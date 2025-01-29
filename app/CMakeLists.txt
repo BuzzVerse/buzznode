@@ -17,15 +17,32 @@ endif()
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(buzznode)
 
+# Nanopb setup
 list(APPEND CMAKE_MODULE_PATH ${ZEPHYR_BASE}/modules/nanopb)
 include(nanopb)
 
-# Find all proto files
-file(GLOB_RECURSE proto_files protobufs/*.proto)
+# Set proto path for imports
+set(PROTO_PATH ${CMAKE_CURRENT_SOURCE_DIR}/protobufs)
+
+# Generate protobuf files
+file(GLOB_RECURSE proto_files protobufs/buzzverse/*.proto)
 foreach(proto_file ${proto_files})
-    zephyr_nanopb_sources(app ${proto_file})
+    get_filename_component(proto_name ${proto_file} NAME_WE)
+    nanopb_generate_cpp(PROTO_SRCS PROTO_HDRS ${proto_file}
+        RELPATH ${PROTO_PATH}
+    )
+    list(APPEND proto_sources ${PROTO_SRCS})
 endforeach()
 
+# Create a separate library for proto files
+zephyr_library_named(proto)
+target_sources(proto PRIVATE ${proto_sources})
+target_include_directories(proto PUBLIC 
+    ${CMAKE_CURRENT_BINARY_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}/protobufs
+)
+
+# Add application sources
 file(GLOB_RECURSE app_sources src/*.cpp)
 target_sources(app PRIVATE ${app_sources})
 
@@ -36,4 +53,4 @@ set_target_properties(app PROPERTIES
     CXX_EXTENSIONS OFF
 )
 
-target_link_libraries(app PRIVATE etl::etl)
+target_link_libraries(app PRIVATE proto etl::etl)
