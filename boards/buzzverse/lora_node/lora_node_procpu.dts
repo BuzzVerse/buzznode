@@ -84,8 +84,12 @@
 	};
 
 	bq27441@55 {
-		compatible = "ti,bq27441";
+		compatible = "ti,bq274xx";
 		reg = <0x55>;
+		design-voltage = <3650>;
+		design-capacity = <3500>;
+		taper-current = <50>;
+		terminate-voltage = <3000>;
 		status = "okay";
 	};
 };
