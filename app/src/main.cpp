@@ -7,8 +7,8 @@
 
 #include "bme280.hpp"
 #include "lorawan_handler.hpp"
-#include "protobufs/buzzverse/bme280.pb.h"
-#include "protobufs/buzzverse/packet.pb.h"
+#include "buzzverse/bme280.pb.h"
+#include "buzzverse/packet.pb.h"
 #include "utils/packet_handler.hpp"
 
 LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
