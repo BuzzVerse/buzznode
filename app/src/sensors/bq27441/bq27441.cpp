@@ -3,7 +3,7 @@
 #include <zephyr/drivers/sensor.h>
 #include <zephyr/logging/log.h>
 
-#include "protobufs/buzzverse/bq27441.pb.h"
+#include "buzzverse/bq27441.pb.h"
 
 LOG_MODULE_REGISTER(bq27441, LOG_LEVEL_DBG);
 

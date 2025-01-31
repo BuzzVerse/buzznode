@@ -19,9 +19,11 @@ source ~/zephyrproject/.venv/bin/activate
 
 west init -m https://github.com/BuzzVerse/buzznode --mr main buzznode
 cd buzznode
-west update
+
+west config manifest.project-filter -- +nanopb
 west blobs fetch hal_espressif
 west blobs fetch hal_stm32
+west update
 ```
 
 ### Registering a device

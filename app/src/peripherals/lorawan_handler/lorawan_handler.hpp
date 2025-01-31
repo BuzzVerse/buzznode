@@ -4,9 +4,9 @@
 #include <etl/array.h>
 #include <etl/string.h>
 
+#include "buzzverse/bq27441.pb.h"
+#include "buzzverse/packet.pb.h"
 #include "peripheral.hpp"
-#include "protobufs/buzzverse/bq27441.pb.h"
-#include "protobufs/buzzverse/packet.pb.h"
 #include "sensors/sensor.hpp"
 
 class LoRaWANHandler : public Peripheral {
