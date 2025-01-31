@@ -4,7 +4,7 @@
 #include <etl/string.h>
 #include <zephyr/device.h>
 
-#include "protobufs/buzzverse/bme280.pb.h"
+#include "buzzverse/bme280.pb.h"
 #include "sensor.hpp"
 
 class BME280 : public Sensor<buzzverse_v1_BME280Data> {

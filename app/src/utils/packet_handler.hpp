@@ -4,7 +4,7 @@
 #include <pb_decode.h>
 #include <pb_encode.h>
 
-#include "protobufs/buzzverse/packet.pb.h"
+#include "buzzverse/packet.pb.h"
 
 class PacketHandler {
  public:

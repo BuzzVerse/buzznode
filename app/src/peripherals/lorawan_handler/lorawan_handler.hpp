@@ -4,8 +4,8 @@
 #include <etl/array.h>
 #include <etl/string.h>
 
+#include "buzzverse/packet.pb.h"
 #include "peripheral.hpp"
-#include "protobufs/buzzverse/packet.pb.h"
 
 class LoRaWANHandler : public Peripheral {
  public:

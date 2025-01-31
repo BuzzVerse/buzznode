@@ -2,9 +2,9 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
+#include "buzzverse/bme280.pb.h"
+#include "buzzverse/packet.pb.h"
 #include "peripherals/lorawan_handler/lorawan_handler.hpp"
-#include "protobufs/buzzverse/bme280.pb.h"
-#include "protobufs/buzzverse/packet.pb.h"
 #include "sensors/bme280/bme280.hpp"
 #include "utils/packet_handler.hpp"
 
