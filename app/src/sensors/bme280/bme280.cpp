@@ -34,15 +34,19 @@ Status BME280::read_data(buzzverse_v1_BME280Data* data) const {
   sensor_channel_get(bme280_dev, SENSOR_CHAN_PRESS, &press);
   sensor_channel_get(bme280_dev, SENSOR_CHAN_HUMIDITY, &humidity);
 
-  // Convert sensor values to protobuf-compatible integers
-  data->temperature =
-    static_cast<uint32_t>((temp.val1 * 100) + (temp.val2 / 10000));  // centi-degrees
-  data->pressure = static_cast<uint32_t>((press.val1 * 10) + (press.val2 / 100000));        // hPa
-  data->humidity = static_cast<uint32_t>((humidity.val1 * 10) + (humidity.val2 / 100000));  // %
+  // Convert temperature to whole degrees (-128 to 127)
+  data->temperature = static_cast<int8_t>(temp.val1);
 
-  LOG_DBG("Temperature: %d.%02d C", data->temperature / 100, data->temperature % 100);
-  LOG_DBG("Pressure: %d.%02d hPa", data->pressure / 100, data->pressure % 100);
-  LOG_DBG("Humidity: %d.%02d %%", data->humidity / 100, data->humidity % 100);
+  // Convert pressure as difference from 1000 hPa (-128 to 127)
+  int32_t raw_pressure = press.val1 * 10 + ((press.val2 * 10) / 100000);
+  data->pressure = static_cast<int8_t>(raw_pressure - 1000);
+
+  // Convert humidity to whole percentage (0-100%)
+  data->humidity = static_cast<uint8_t>(humidity.val1);
+
+  LOG_DBG("Temperature: %d C", data->temperature);
+  LOG_DBG("Pressure (Difference from 1000 hPa): %d hPa", data->pressure);
+  LOG_DBG("Humidity: %d %%", data->humidity);
 
   return Status::OK;
 }
