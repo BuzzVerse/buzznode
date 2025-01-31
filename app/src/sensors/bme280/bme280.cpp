@@ -9,23 +9,25 @@ LOG_MODULE_REGISTER(bme280, LOG_LEVEL_DBG);
 
 BME280::BME280(const device* dev) : bme280_dev(dev) {}
 
-bool BME280::init() {
+using Status = Sensor<buzzverse_v1_BME280Data>::Status;
+
+Peripheral::Status BME280::init() {
   if (!device_is_ready(bme280_dev)) {
     LOG_WRN("BME280 device not ready");
-    return false;
+    return Peripheral::Status::NOT_READY;
   }
 
   LOG_INF("BME280 device ready");
   ready = true;
-  return true;
+  return Peripheral::Status::OK;
 }
 
-void BME280::read_data(buzzverse_v1_BME280Data* data) const {
+Status BME280::read_data(buzzverse_v1_BME280Data* data) const {
   struct sensor_value temp, press, humidity;
 
   if (sensor_sample_fetch(bme280_dev) != 0) {
     LOG_ERR("Failed to fetch BME280 data");
-    return;
+    return Status::READ_ERR;
   }
 
   sensor_channel_get(bme280_dev, SENSOR_CHAN_AMBIENT_TEMP, &temp);
@@ -37,4 +39,10 @@ void BME280::read_data(buzzverse_v1_BME280Data* data) const {
     static_cast<uint32_t>((temp.val1 * 100) + (temp.val2 / 10000));  // centi-degrees
   data->pressure = static_cast<uint32_t>((press.val1 * 10) + (press.val2 / 100000));        // hPa
   data->humidity = static_cast<uint32_t>((humidity.val1 * 10) + (humidity.val2 / 100000));  // %
+
+  LOG_DBG("Temperature: %d.%02d C", data->temperature / 100, data->temperature % 100);
+  LOG_DBG("Pressure: %d.%02d hPa", data->pressure / 100, data->pressure % 100);
+  LOG_DBG("Humidity: %d.%02d %%", data->humidity / 100, data->humidity % 100);
+
+  return Status::OK;
 }

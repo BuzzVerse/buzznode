@@ -10,7 +10,10 @@
 
 LOG_MODULE_REGISTER(lorawan_handler, LOG_LEVEL_DBG);
 
-LoRaWANHandler::LoRaWANHandler() {
+Sensor<buzzverse_v1_BQ27441Data>* LoRaWANHandler::battery_sensor = nullptr;
+
+LoRaWANHandler::LoRaWANHandler(Sensor<buzzverse_v1_BQ27441Data>& battery_sensor) {
+  LoRaWANHandler::battery_sensor = &battery_sensor;
   const char* dev_eui_str = CONFIG_LORAWAN_DEV_EUI;
   const char* join_eui_str = CONFIG_LORAWAN_JOIN_EUI;
   const char* app_key_str = CONFIG_LORAWAN_APP_KEY;
@@ -30,20 +33,49 @@ LoRaWANHandler::LoRaWANHandler() {
   }
 }
 
-bool LoRaWANHandler::init() {
+uint8_t LoRaWANHandler::battery_level_callback() {
+  if (nullptr == battery_sensor) {
+    LOG_ERR("Battery sensor is not set. Returning 255.");
+    return 255;
+  }
+
+  if (!battery_sensor->is_ready()) {
+    LOG_ERR("Battery sensor is not ready, returning 255.");
+    return 255;
+  }
+
+  buzzverse_v1_BQ27441Data battery_data = buzzverse_v1_BQ27441Data_init_zero;
+  auto status = battery_sensor->read_data(&battery_data);
+  if (Sensor<buzzverse_v1_BQ27441Data>::Status::OK != status) {
+    LOG_ERR("Battery sensor read failed: %d", static_cast<int>(status));
+    return 255;
+  }
+
+  uint8_t soc = battery_data.state_of_charge;
+
+  if (0 == soc) {
+    LOG_WRN("Battery level is 0, possibly external power source.");
+    return 0;
+  } else if (soc > 100) {
+    LOG_ERR("Invalid battery percentage: %d", soc);
+    return 255;
+  }
+
+  uint8_t lorawan_battery_level = (soc * 254) / 100;
+  return lorawan_battery_level == 0 ? 1 : lorawan_battery_level;
+}
+
+Peripheral::Status LoRaWANHandler::init() {
   const device* lora_dev = DEVICE_DT_GET(DT_ALIAS(lora0));
   if (!device_is_ready(lora_dev)) {
     LOG_WRN("%s: device not ready.", lora_dev->name);
-    return false;
+    return Peripheral::Status::INIT_ERR;
   }
-
-  // lorawan_enable_adr(false);
-  // lorawan_set_class(LORAWAN_CLASS_A);
 
   int ret = lorawan_start();
   if (ret < 0) {
     LOG_WRN("lorawan_start failed: %d", ret);
-    return false;
+    return Peripheral::Status::INIT_ERR;
   }
 
   struct lorawan_join_config join_cfg;
@@ -57,31 +89,35 @@ bool LoRaWANHandler::init() {
   ret = lorawan_join(&join_cfg);
   if (ret < 0) {
     LOG_WRN("lorawan_join failed: %d", ret);
-    return false;
+    return Peripheral::Status::INIT_ERR;
   }
 
   LOG_INF("Successfully joined LoRaWAN network");
+
+  lorawan_register_battery_level_callback(&LoRaWANHandler::battery_level_callback);
+
+  LOG_INF("LoRaWAN battery level callback registered.");
   connected = true;
-  return true;
+  return Peripheral::Status::OK;
 }
 
-bool LoRaWANHandler::send_packet(const buzzverse_v1_Packet& packet) const {
+LoRaWANHandler::Status LoRaWANHandler::send_packet(const buzzverse_v1_Packet& packet) const {
   uint8_t buffer[MAX_MSG_SIZE];
   size_t size = 0;
 
   // Encode the protobuf message
   if (!PacketHandler::encode(packet, buffer, size)) {
     LOG_ERR("Packet encoding failed");
-    return false;
+    return Status::ENCODE_ERR;
   }
 
   // Send the encoded message over LoRaWAN
   int ret = lorawan_send(2, buffer, size, LORAWAN_MSG_UNCONFIRMED);
   if (ret < 0) {
     LOG_ERR("LoRaWAN send failed: %d", ret);
-    return false;
+    return Status::SEND_ERR;
   }
 
   LOG_INF("Packet sent successfully (size: %zu bytes)", size);
-  return true;
+  return Status::OK;
 }

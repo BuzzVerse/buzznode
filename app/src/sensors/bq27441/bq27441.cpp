@@ -9,23 +9,25 @@ LOG_MODULE_REGISTER(bq27441, LOG_LEVEL_DBG);
 
 BQ27441::BQ27441(const device* dev) : bq27441_dev(dev) {}
 
-bool BQ27441::init() {
+using Status = Sensor<buzzverse_v1_BQ27441Data>::Status;
+
+Peripheral::Status BQ27441::init() {
   if (!device_is_ready(bq27441_dev)) {
     LOG_WRN("BQ27441 device not ready");
-    return false;
+    return Peripheral::Status::NOT_READY;
   }
 
   LOG_INF("BQ27441 device ready");
   ready = true;
-  return true;
+  return Peripheral::Status::OK;
 }
 
-void BQ27441::read_data(buzzverse_v1_BQ27441Data* data) const {
+Status BQ27441::read_data(buzzverse_v1_BQ27441Data* data) const {
   struct sensor_value voltage, current, state_of_charge, remaining_charge_capacity;
 
   if (sensor_sample_fetch(bq27441_dev) != 0) {
     LOG_ERR("Failed to fetch BQ27441 data");
-    return;
+    return Status::READ_ERR;
   }
 
   // Read values from sensor channels
@@ -42,8 +44,10 @@ void BQ27441::read_data(buzzverse_v1_BQ27441Data* data) const {
   data->remaining_capacity_mah = (remaining_charge_capacity.val1 * 1000) +
                                  (remaining_charge_capacity.val2 / 1000);  // Convert Ah to mAh
 
-  LOG_INF("Voltage: %d mV", data->voltage_mv);
-  LOG_INF("Current: %d mA", data->current_ma);
-  LOG_INF("State of charge: %d%%", data->state_of_charge);
-  LOG_INF("Remaining capacity: %d mAh", data->remaining_capacity_mah);
+  LOG_DBG("Voltage: %d mV", data->voltage_mv);
+  LOG_DBG("Current: %d mA", data->current_ma);
+  LOG_DBG("State of charge: %d%%", data->state_of_charge);
+  LOG_DBG("Remaining capacity: %d mAh", data->remaining_capacity_mah);
+
+  return Status::OK;
 }

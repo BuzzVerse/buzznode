@@ -23,20 +23,17 @@ int main(void) {
   BME280 bme280(bme280_dev);
   BQ27441 bq27441(bq27441_dev);
 
-  LoRaWANHandler lorawan;
+  LoRaWANHandler lorawan(bq27441);
 
   etl::vector<Peripheral*, 3> peripherals = {&bme280, &bq27441, &lorawan};
 
-  k_sleep(DELAY_10_SEC);
-
   for (auto* peripheral : peripherals) {
-    if (!peripheral->init()) {
+    if (peripheral->init() != Peripheral::Status::OK) {
       LOG_ERR("%s initialization failed", peripheral->get_name().c_str());
     }
   }
 
   while (true) {
-    // Create and populate a BME280Data protobuf message
     buzzverse_v1_BME280Data bme280_data = buzzverse_v1_BME280Data_init_zero;
     buzzverse_v1_BQ27441Data bq27441_data = buzzverse_v1_BQ27441Data_init_zero;
 
@@ -62,7 +59,7 @@ int main(void) {
     packet.data.bme280 = bme280_data;
 
     // Send the packet using LoRaWANHandler
-    if (!lorawan.is_ready() || !lorawan.send_packet(packet)) {
+    if (!lorawan.is_ready() || (lorawan.send_packet(packet) != LoRaWANHandler::Status::OK)) {
       LOG_ERR("Failed to send packet");
     }
 

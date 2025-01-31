@@ -11,7 +11,7 @@ class BQ27441 : public Sensor<buzzverse_v1_BQ27441Data> {
  public:
   explicit BQ27441(const device* dev);
 
-  bool init() override;
+  Peripheral::Status init() override;
 
   bool is_ready() const override {
     return ready;
@@ -21,7 +21,7 @@ class BQ27441 : public Sensor<buzzverse_v1_BQ27441Data> {
     return "BQ27441";
   }
 
-  void read_data(buzzverse_v1_BQ27441Data* data) const override;
+  Status read_data(buzzverse_v1_BQ27441Data* data) const override;
 
  private:
   const device* bq27441_dev;
