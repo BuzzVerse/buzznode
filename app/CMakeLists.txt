@@ -11,7 +11,7 @@ if(EXISTS ${LOCAL_CONF})
     set(OVERLAY_CONFIG ${LOCAL_CONF})
     message(STATUS "Using LoRaWAN credentials from: ${LOCAL_CONF}")
 else()
-    message(WARNING "local.conf not found at: ${LOCAL_CONF}. Using default LoRaWAN credentials.")
+    message(STATUS "local.conf not found at: ${LOCAL_CONF}. Using default LoRaWAN credentials.")
 endif()
 
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
