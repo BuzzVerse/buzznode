@@ -18,6 +18,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: buzznode
+          submodules: recursive
 
       - name: Set up Python
         uses: actions/setup-python@v5
