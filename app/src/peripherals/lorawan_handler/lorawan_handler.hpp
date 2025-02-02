@@ -13,7 +13,11 @@ class LoRaWANHandler : public Peripheral {
  public:
   explicit LoRaWANHandler(Sensor<buzzverse_v1_BQ27441Data>& battery_sensor);
 
+  static constexpr uint8_t LORAWAN_PORT = 2;
+
   static constexpr size_t MAX_MSG_SIZE = 64;
+  static constexpr size_t EUI_SIZE = 8;
+  static constexpr size_t KEY_SIZE = 16;
 
   /**
    * @brief LoRaWAN-specific status codes
@@ -39,9 +43,9 @@ class LoRaWANHandler : public Peripheral {
 
  private:
   bool connected{false};
-  etl::array<uint8_t, 8> dev_eui;
-  etl::array<uint8_t, 8> join_eui;
-  etl::array<uint8_t, 16> app_key;
+  etl::array<uint8_t, EUI_SIZE> dev_eui;
+  etl::array<uint8_t, EUI_SIZE> join_eui;
+  etl::array<uint8_t, KEY_SIZE> app_key;
   static Sensor<buzzverse_v1_BQ27441Data>* battery_sensor;
   static uint8_t battery_level_callback();
 };

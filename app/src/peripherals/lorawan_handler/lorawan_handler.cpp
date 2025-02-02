@@ -112,7 +112,7 @@ LoRaWANHandler::Status LoRaWANHandler::send_packet(const buzzverse_v1_Packet& pa
   }
 
   // Send the encoded message over LoRaWAN
-  int ret = lorawan_send(2, buffer, size, LORAWAN_MSG_UNCONFIRMED);
+  int ret = lorawan_send(LORAWAN_PORT, buffer, size, LORAWAN_MSG_UNCONFIRMED);
   if (ret < 0) {
     LOG_ERR("LoRaWAN send failed: %d", ret);
     return Status::SEND_ERR;

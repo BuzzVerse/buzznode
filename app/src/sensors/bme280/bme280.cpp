@@ -25,6 +25,11 @@ Peripheral::Status BME280::init() {
 Status BME280::read_data(buzzverse_v1_BME280Data* data) const {
   struct sensor_value temp, press, humidity;
 
+  if (nullptr == data) {
+    LOG_ERR("Invalid data pointer");
+    return Status::READ_ERR;
+  }
+
   if (sensor_sample_fetch(bme280_dev) != 0) {
     LOG_ERR("Failed to fetch BME280 data");
     return Status::READ_ERR;
