@@ -32,6 +32,12 @@ jobs:
           toolchains: arm-zephyr-eabi
           manifest-file-name: west.yml
 
+      - name: Register device
+        working-directory: buzznode
+        shell: bash
+        run: |
+          west register-device --join-eui 70B3D57ED0000001
+
       - name: Build firmware
         working-directory: buzznode
         shell: bash
