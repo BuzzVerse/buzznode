@@ -30,15 +30,13 @@ jobs:
         with:
           app-path: buzznode
           toolchains: arm-zephyr-eabi
+          manifest-file-name: west.yml
 
       - name: Build firmware
         working-directory: buzznode
         shell: bash
         run: |
-          if [ "${{ runner.os }}" = "Windows" ]; then
-            EXTRA_TWISTER_FLAGS="--short-build-path -O/tmp/twister-out"
-          fi
-          west twister -T app -v --inline-logs --integration $EXTRA_TWISTER_FLAGS
+          west build -b lora_node/esp32s3/procpu -p always app --sysbuild
 
       - name: Twister Tests
         working-directory: buzznode
