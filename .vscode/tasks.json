@@ -1,0 +1,54 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "Zephyr: Build BuzzNode (ESP32)",
+            "command": "bash",
+            "args": [
+                "-c",
+                "source ~/zephyrproject/.venv/bin/activate && west build -b lora_node/esp32s3/procpu -p always app"
+            ],
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "Activate venv and build the BuzzNode ESP32 firmware."
+        },
+        {
+            "type": "shell",
+            "label": "Zephyr: Flash BuzzNode (ESP32)",
+            "command": "bash",
+            "args": [
+                "-c",
+                "source ~/zephyrproject/.venv/bin/activate && DEVICE=$(ls /dev/cu.usbmodem* | head -n 1) && west flash --esp-device $DEVICE"
+            ],
+            "problemMatcher": [],
+            "detail": "Activate venv and flash the BuzzNode ESP32 firmware to the device."
+        },
+        {
+            "type": "shell",
+            "label": "Zephyr: Monitor BuzzNode Logs (ESP32)",
+            "command": "bash",
+            "args": [
+                "-c",
+                "source ~/zephyrproject/.venv/bin/activate && DEVICE=$(ls /dev/cu.usbmodem* | head -n 1) && west espressif monitor -p $DEVICE"
+            ],
+            "problemMatcher": [],
+            "detail": "Activate venv and monitor logs for the BuzzNode ESP32 device."
+        },
+        {
+            "type": "shell",
+            "label": "Zephyr: Build-Flash-Monitor BuzzNode (ESP32)",
+            "command": "bash",
+            "args": [
+                "-c",
+                "source ~/zephyrproject/.venv/bin/activate && DEVICE=$(ls /dev/cu.usbmodem* | head -n 1) && west build -b lora_node/esp32s3/procpu -p always app && west flash --esp-device $DEVICE && west espressif monitor -p $DEVICE"
+            ],
+            "problemMatcher": [],
+            "detail": "Activate venv and perform build, flash, and monitor steps for BuzzNode ESP32 firmware.",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}
