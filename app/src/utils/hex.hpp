@@ -20,4 +20,4 @@ inline uint8_t hex2byte(const char* hex) {
   return byte;
 }
 
-}
+}  // namespace utils

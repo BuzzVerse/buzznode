@@ -4,12 +4,14 @@
 #include <etl/array.h>
 #include <etl/string.h>
 
+#include "buzzverse/bq27441.pb.h"
 #include "buzzverse/packet.pb.h"
 #include "peripheral.hpp"
+#include "sensors/sensor.hpp"
 
 class LoRaWANHandler : public Peripheral {
  public:
-  LoRaWANHandler();
+  explicit LoRaWANHandler(Sensor<buzzverse_v1_BQ27441Data>& battery_sensor);
 
   static constexpr uint8_t LORAWAN_PORT = 2;
 
@@ -17,7 +19,17 @@ class LoRaWANHandler : public Peripheral {
   static constexpr size_t EUI_SIZE = 8;
   static constexpr size_t KEY_SIZE = 16;
 
-  bool init() override;
+  /**
+   * @brief LoRaWAN-specific status codes
+   */
+  enum class Status {
+    OK = 0,         /**< Operation successful */
+    JOIN_ERR = -3,  /**< Failed to join the LoRaWAN network */
+    SEND_ERR = -4,  /**< Failed to send a packet */
+    ENCODE_ERR = -5 /**< Failed to encode the message */
+  };
+
+  Peripheral::Status init() override;
 
   bool is_ready() const override {
     return connected;
@@ -27,13 +39,15 @@ class LoRaWANHandler : public Peripheral {
     return "LoRaWAN";
   }
 
-  bool send_packet(const buzzverse_v1_Packet& packet) const;
+  Status send_packet(const buzzverse_v1_Packet& packet) const;
 
  private:
   bool connected{false};
   etl::array<uint8_t, EUI_SIZE> dev_eui;
   etl::array<uint8_t, EUI_SIZE> join_eui;
   etl::array<uint8_t, KEY_SIZE> app_key;
+  static Sensor<buzzverse_v1_BQ27441Data>* battery_sensor;
+  static uint8_t battery_level_callback();
 };
 
 #endif  // LORAWAN_HANDLER_HPP
