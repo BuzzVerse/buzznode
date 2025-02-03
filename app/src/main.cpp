@@ -18,13 +18,14 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
 int main(void) {
   const device* const bme280_dev = DEVICE_DT_GET_ANY(bosch_bme280);
   const device* const bq27441_dev = DEVICE_DT_GET_ANY(ti_bq274xx);
+  constexpr uint8_t DEVICE_AMOUNT = 3;
 
   BME280 bme280(bme280_dev);
   BQ27441 bq27441(bq27441_dev);
 
   LoRaWANHandler lorawan(bq27441);
 
-  etl::vector<Peripheral*, 3> peripherals = {&bme280, &bq27441, &lorawan};
+  etl::vector<Peripheral*, DEVICE_AMOUNT> peripherals = {&bme280, &bq27441, &lorawan};
 
   for (auto* peripheral : peripherals) {
     if (peripheral->init() != Peripheral::Status::OK) {
