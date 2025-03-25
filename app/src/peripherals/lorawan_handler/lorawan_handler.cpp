@@ -26,29 +26,30 @@ LoRaWANHandler::LoRaWANHandler(Sensor<buzzverse_v1_BQ27441Data>& battery_sensor)
   LOG_INF("App Key: %s", app_key_str);
 
   for (size_t i = 0; i < 8; i++) {
-    dev_eui[i] = utils::hex2byte(&dev_eui_str[i * 2]);
-    join_eui[i] = utils::hex2byte(&join_eui_str[i * 2]);
+    dev_eui[i] = utils::hex2val<uint8_t>(&dev_eui_str[i * 2]);
+    join_eui[i] = utils::hex2val<uint8_t>(&join_eui_str[i * 2]);
   }
+
   for (size_t i = 0; i < 16; i++) {
-    app_key[i] = utils::hex2byte(&app_key_str[i * 2]);
+    app_key[i] = utils::hex2val<uint8_t>(&app_key_str[i * 2]);
   }
 
 #elif defined(CONFIG_LORAWAN_JOIN_ABP)
-  LOG_INF("LoRaWAN Handler (ABP) initialized");
-  LOG_INF("DevAddr: 0x%08X", CONFIG_LORAWAN_DEV_ADDR);
-  LOG_INF("AppSKey: %s", CONFIG_LORAWAN_APP_SKEY);
-  LOG_INF("NwkSKey: %s", CONFIG_LORAWAN_NWK_SKEY);
-
+  const char* dev_addr_str = CONFIG_LORAWAN_DEV_ADDR;
   const char* app_skey_str = CONFIG_LORAWAN_APP_SKEY;
   const char* nwk_skey_str = CONFIG_LORAWAN_NWK_SKEY;
 
+  LOG_INF("LoRaWAN Handler (ABP) initialized");
+  LOG_INF("DevAddr: %s", dev_addr_str);
+  LOG_INF("AppSKey: %s", app_skey_str);
+  LOG_INF("NwkSKey: %s", nwk_skey_str);
+
+  dev_addr = utils::hex2val<uint32_t>(dev_addr_str);
+
   for (size_t i = 0; i < 16; i++) {
-    app_skey[i] = utils::hex2byte(&app_skey_str[i * 2]);
-    nwk_skey[i] = utils::hex2byte(&nwk_skey_str[i * 2]);
+    app_skey[i] = utils::hex2val<uint8_t>(&app_skey_str[i * 2]);
+    nwk_skey[i] = utils::hex2val<uint8_t>(&nwk_skey_str[i * 2]);
   }
-
-  dev_addr = CONFIG_LORAWAN_DEV_ADDR;
-
 #endif  // CONFIG_LORAWAN_JOIN_OTAA vs CONFIG_LORAWAN_JOIN_ABP
 }
 

@@ -48,9 +48,9 @@ config LORAWAN_APP_KEY
       LoRaWAN Application Key in hex format (32 characters) MSB first
 
 config LORAWAN_DEV_ADDR
-    hex "Device Address (for ABP)"
+    string "Device Address (for ABP)"
     depends on LORAWAN_JOIN_ABP
-    default 0x00000000
+    default "00000000"
     help
       LoRaWAN Device Address in hex format (8 characters) for ABP mode
 
