@@ -29,7 +29,6 @@ endchoice
 
 config LORAWAN_DEV_EUI
     string "Device EUI"
-    depends on LORAWAN_JOIN_OTAA
     default "0000000000000000"
     help
       LoRaWAN Device EUI in hex format (16 characters) MSB first

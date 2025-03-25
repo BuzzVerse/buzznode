@@ -43,8 +43,9 @@ class LoRaWANHandler : public Peripheral {
 
  private:
   bool connected{false};
-  // OTAA values
   etl::array<uint8_t, EUI_SIZE> dev_eui;
+
+  // OTAA values
   etl::array<uint8_t, EUI_SIZE> join_eui;
   etl::array<uint8_t, KEY_SIZE> app_key;
 

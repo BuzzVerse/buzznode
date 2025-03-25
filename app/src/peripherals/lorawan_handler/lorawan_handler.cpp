@@ -113,6 +113,7 @@ Peripheral::Status LoRaWANHandler::init() {
 #elif defined(CONFIG_LORAWAN_JOIN_ABP)
   // ABP join
   join_cfg.mode = LORAWAN_ACT_ABP;
+  join_cfg.dev_eui = dev_eui.data();
   join_cfg.abp.dev_addr = dev_addr;
   join_cfg.abp.app_skey = app_skey.data();
   join_cfg.abp.nwk_skey = nwk_skey.data();
