@@ -14,23 +14,43 @@ Sensor<buzzverse_v1_BQ27441Data>* LoRaWANHandler::battery_sensor = nullptr;
 
 LoRaWANHandler::LoRaWANHandler(Sensor<buzzverse_v1_BQ27441Data>& battery_sensor) {
   LoRaWANHandler::battery_sensor = &battery_sensor;
+
+#if defined(CONFIG_LORAWAN_JOIN_OTAA)
   const char* dev_eui_str = CONFIG_LORAWAN_DEV_EUI;
   const char* join_eui_str = CONFIG_LORAWAN_JOIN_EUI;
   const char* app_key_str = CONFIG_LORAWAN_APP_KEY;
 
-  LOG_INF("LoRaWAN Handler initialized");
+  LOG_INF("LoRaWAN Handler (OTAA) initialized");
   LOG_INF("Device EUI: %s", dev_eui_str);
   LOG_INF("Join EUI: %s", join_eui_str);
   LOG_INF("App Key: %s", app_key_str);
 
   for (size_t i = 0; i < 8; i++) {
-    dev_eui[i] = utils::hex2byte(&dev_eui_str[i * 2]);
-    join_eui[i] = utils::hex2byte(&join_eui_str[i * 2]);
+    dev_eui[i] = utils::hex2val<uint8_t>(&dev_eui_str[i * 2]);
+    join_eui[i] = utils::hex2val<uint8_t>(&join_eui_str[i * 2]);
   }
 
   for (size_t i = 0; i < 16; i++) {
-    app_key[i] = utils::hex2byte(&app_key_str[i * 2]);
+    app_key[i] = utils::hex2val<uint8_t>(&app_key_str[i * 2]);
   }
+
+#elif defined(CONFIG_LORAWAN_JOIN_ABP)
+  const char* dev_addr_str = CONFIG_LORAWAN_DEV_ADDR;
+  const char* app_skey_str = CONFIG_LORAWAN_APP_SKEY;
+  const char* nwk_skey_str = CONFIG_LORAWAN_NWK_SKEY;
+
+  LOG_INF("LoRaWAN Handler (ABP) initialized");
+  LOG_INF("DevAddr: %s", dev_addr_str);
+  LOG_INF("AppSKey: %s", app_skey_str);
+  LOG_INF("NwkSKey: %s", nwk_skey_str);
+
+  dev_addr = utils::hex2val<uint32_t>(dev_addr_str);
+
+  for (size_t i = 0; i < 16; i++) {
+    app_skey[i] = utils::hex2val<uint8_t>(&app_skey_str[i * 2]);
+    nwk_skey[i] = utils::hex2val<uint8_t>(&nwk_skey_str[i * 2]);
+  }
+#endif  // CONFIG_LORAWAN_JOIN_OTAA vs CONFIG_LORAWAN_JOIN_ABP
 }
 
 uint8_t LoRaWANHandler::battery_level_callback() {
@@ -78,14 +98,30 @@ Peripheral::Status LoRaWANHandler::init() {
     return Peripheral::Status::INIT_ERR;
   }
 
-  struct lorawan_join_config join_cfg;
+  lorawan_enable_adr(false);
+
+  struct lorawan_join_config join_cfg = {};
+
+#if defined(CONFIG_LORAWAN_JOIN_OTAA)
+  // OTAA join
   join_cfg.mode = LORAWAN_ACT_OTAA;
   join_cfg.dev_eui = dev_eui.data();
   join_cfg.otaa.join_eui = join_eui.data();
   join_cfg.otaa.app_key = app_key.data();
   join_cfg.otaa.nwk_key = app_key.data();
 
-  LOG_INF("Joining LoRaWAN network...");
+  LOG_INF("Joining LoRaWAN network using OTAA...");
+#elif defined(CONFIG_LORAWAN_JOIN_ABP)
+  // ABP join
+  join_cfg.mode = LORAWAN_ACT_ABP;
+  join_cfg.dev_eui = dev_eui.data();
+  join_cfg.abp.dev_addr = dev_addr;
+  join_cfg.abp.app_skey = app_skey.data();
+  join_cfg.abp.nwk_skey = nwk_skey.data();
+
+  LOG_INF("Joining LoRaWAN network using ABP...");
+#endif
+
   ret = lorawan_join(&join_cfg);
   if (ret < 0) {
     LOG_WRN("lorawan_join failed: %d", ret);

@@ -8,6 +8,25 @@ config LORAMAC_REGION_EU868
     bool
     default y if BOARD_NUCLEO_WL55JC
 
+choice LORAWAN_JOIN_MODE
+    prompt "LoRaWAN Join Mode"
+    default LORAWAN_JOIN_OTAA
+    help
+        Select the LoRaWAN activation mode.
+
+    config LORAWAN_JOIN_OTAA
+        bool "OTAA"
+        help
+            Over-the-Air Activation (OTAA) - Device performs a join procedure
+            with the network server to obtain session keys.
+
+    config LORAWAN_JOIN_ABP
+        bool "ABP"
+        help
+            Activation By Personalization (ABP) - Device uses pre-provisioned
+            session keys without performing a join procedure.
+endchoice
+
 config LORAWAN_DEV_EUI
     string "Device EUI"
     default "0000000000000000"
@@ -16,15 +35,38 @@ config LORAWAN_DEV_EUI
 
 config LORAWAN_JOIN_EUI
     string "Join EUI"
+    depends on LORAWAN_JOIN_OTAA
     default "0000000000000000"
     help
       LoRaWAN Join EUI (AppEUI) in hex format (16 characters) MSB first
 
 config LORAWAN_APP_KEY
     string "Application Key"
+    depends on LORAWAN_JOIN_OTAA
     default "00000000000000000000000000000000"
     help
       LoRaWAN Application Key in hex format (32 characters) MSB first
+
+config LORAWAN_DEV_ADDR
+    string "Device Address (for ABP)"
+    depends on LORAWAN_JOIN_ABP
+    default "00000000"
+    help
+      LoRaWAN Device Address in hex format (8 characters) for ABP mode
+
+config LORAWAN_APP_SKEY
+    string "Application Session Key (for ABP)"
+    depends on LORAWAN_JOIN_ABP
+    default "00000000000000000000000000000000"
+    help
+      LoRaWAN Application Session Key in hex format (32 characters) for ABP mode
+
+config LORAWAN_NWK_SKEY
+    string "Network Session Key (for ABP)"
+    depends on LORAWAN_JOIN_ABP
+    default "00000000000000000000000000000000"
+    help
+      LoRaWAN Network Session Key in hex format (32 characters) for ABP mode
 
 source "Kconfig.zephyr"
 endmenu

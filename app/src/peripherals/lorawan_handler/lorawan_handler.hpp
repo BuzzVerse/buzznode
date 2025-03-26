@@ -44,8 +44,16 @@ class LoRaWANHandler : public Peripheral {
  private:
   bool connected{false};
   etl::array<uint8_t, EUI_SIZE> dev_eui;
+
+  // OTAA values
   etl::array<uint8_t, EUI_SIZE> join_eui;
   etl::array<uint8_t, KEY_SIZE> app_key;
+
+  // ABP values
+  uint32_t dev_addr;
+  etl::array<uint8_t, KEY_SIZE> app_skey;
+  etl::array<uint8_t, KEY_SIZE> nwk_skey;
+
   static Sensor<buzzverse_v1_BQ27441Data>* battery_sensor;
   static uint8_t battery_level_callback();
 };
