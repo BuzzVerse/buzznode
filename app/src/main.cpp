@@ -35,23 +35,7 @@ int main(void) {
 
   while (true) {
     buzzverse_v1_BME280Data bme280_data = buzzverse_v1_BME280Data_init_zero;
-    buzzverse_v1_BQ27441Data bq27441_data = buzzverse_v1_BQ27441Data_init_zero;
-
-    if (bme280.is_ready()) {
-      bme280.read_data(&bme280_data);
-    } else {
-      LOG_ERR("BME280 not ready");
-      k_sleep(DELAY_10_SEC);
-      continue;
-    }
-
-    if (bq27441.is_ready()) {
-      bq27441.read_data(&bq27441_data);
-    } else {
-      LOG_ERR("BQ27441 not ready");
-      k_sleep(DELAY_10_SEC);
-      continue;
-    }
+    bme280.read_data(&bme280_data);
 
     // Create and populate a Packet protobuf message
     buzzverse_v1_Packet packet = buzzverse_v1_Packet_init_zero;
