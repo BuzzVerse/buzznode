@@ -4,7 +4,6 @@
 #include <zephyr/device.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/lorawan/lorawan.h>
-#include <zephyr/pm/device.h>
 
 #include "utils/hex.hpp"
 #include "utils/packet_handler.hpp"
