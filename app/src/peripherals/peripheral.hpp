@@ -16,9 +16,12 @@ class Peripheral {
    * @brief Generic peripheral status codes
    */
   enum class Status {
-    OK = 0,        /**< Operation successful */
-    INIT_ERR = -1, /**< Initialization failed */
-    NOT_READY = -2 /**< Peripheral is not ready */
+    OK = 0,                      /**< Operation successful */
+    INIT_ERR = -1,               /**< Initialization failed */
+    NOT_READY = -2,              /**< Peripheral is not ready */
+    ERROR_INVALID_PARAM = -3,    /**< Invalid parameter provided */
+    ERROR_NOT_INITIALIZED = -4,  /**< Initialization failed */
+    ERROR_HW_CONFIG_FAILED = -5, /**< Hardware configuration failed */
   };
 
   /**

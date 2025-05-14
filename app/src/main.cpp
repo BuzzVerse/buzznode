@@ -1,54 +1,40 @@
-#include <etl/vector.h>
+// app/src/main.cpp
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/sys/printk.h>
 
-#include "buzzverse/bme280.pb.h"
-#include "buzzverse/packet.pb.h"
-#include "peripherals/lorawan_handler/lorawan_handler.hpp"
-#include "sensors/bme280/bme280.hpp"
-#include "sensors/bq27441/bq27441.hpp"
-#include "utils/packet_handler.hpp"
+#include "Application.hpp"
+#include "utils/banner.hpp"
 
-LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
-
-#define DELAY_10_SEC K_SECONDS(10)
-#define DELAY_20_SEC K_SECONDS(20)
-#define DELAY_30_SEC K_SECONDS(30)
+LOG_MODULE_REGISTER(main_entry, LOG_LEVEL_DBG);
 
 int main(void) {
-  const device* const bme280_dev = DEVICE_DT_GET_ANY(bosch_bme280);
-  const device* const bq27441_dev = DEVICE_DT_GET_ANY(ti_bq274xx);
-  constexpr uint8_t DEVICE_AMOUNT = 3;
+  printk("%s\n", APP_ASCII_BANNER);
 
-  BME280 bme280(bme280_dev);
-  BQ27441 bq27441(bq27441_dev);
+  LOG_INF("===== Buzzverse Node System Booting (Zephyr Log) =====");
 
-  LoRaWANHandler lorawan(bq27441);
+  Application app;
 
-  etl::vector<Peripheral*, DEVICE_AMOUNT> peripherals = {&bme280, &bq27441, &lorawan};
-
-  for (auto* peripheral : peripherals) {
-    if (peripheral->init() != Peripheral::Status::OK) {
-      LOG_ERR("%s initialization failed", peripheral->get_name().c_str());
+  if (!app.init()) {
+    LOG_ERR("Application initialization failed. Halting.");
+    while (true) {
+      k_sleep(K_SECONDS(60));
     }
   }
 
+  app.run_cycle();
+
+#ifdef CONFIG_ENABLE_DEVICE_SLEEP
+  app.enter_low_power_mode();
+  LOG_WRN("Execution continued after enter_low_power_mode - this is unexpected for deep sleep.");
+#else
+  LOG_INF("Device sleep not enabled. Running in normal mode.");
+  // Main loop for normal operation
   while (true) {
-    buzzverse_v1_BME280Data bme280_data = buzzverse_v1_BME280Data_init_zero;
-    bme280.read_data(&bme280_data);
-
-    // Create and populate a Packet protobuf message
-    buzzverse_v1_Packet packet = buzzverse_v1_Packet_init_zero;
-    packet.which_data = buzzverse_v1_Packet_bme280_tag;
-    packet.data.bme280 = bme280_data;
-
-    // Send the packet using LoRaWANHandler
-    if (!lorawan.is_ready() || (lorawan.send_packet(packet) != LoRaWANHandler::Status::OK)) {
-      LOG_ERR("Failed to send packet");
-    }
-
-    k_sleep(DELAY_10_SEC);
+    k_sleep(K_SECONDS(5));
+    app.run_cycle();
   }
+#endif
 
   return 0;
 }
