@@ -15,9 +15,7 @@ LOG_MODULE_REGISTER(application, CONFIG_APP_LOG_LEVEL);
 
 Application::Application(BME280& bme280, BQ27441& bq27441, LoRaWANHandler& lorawan,
                          SleepManager* sleep_manager)
-    : m_bme280(bme280), m_bq27441(bq27441), m_lorawan(lorawan), m_sleep_manager(sleep_manager) {
-  // Constructor: Initializes members with injected dependencies.
-}
+    : m_bme280(bme280), m_bq27441(bq27441), m_lorawan(lorawan), m_sleep_manager(sleep_manager) {}
 
 bool Application::init() {
   LOG_INF("Application core initializing...");
@@ -53,7 +51,6 @@ bool Application::initialize_peripherals() {
   LOG_DBG("Initializing: %s", m_bq27441.get_name().c_str());
   if (m_bq27441.init() != Peripheral::Status::OK) {
     LOG_ERR("%s initialization failed.", m_bq27441.get_name().c_str());
-    // BQ27441 is not considered essential for the main application logic to run
   } else {
     LOG_INF("%s initialized.", m_bq27441.get_name().c_str());
   }
