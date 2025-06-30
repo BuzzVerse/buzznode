@@ -140,7 +140,7 @@ void Application::read_sensor_data(buzzverse_v1_BME280Data& bme_data) {
 
   if (m_bme280.is_ready()) {
     if (m_bme280.read_data(&bme_data) == Sensor<buzzverse_v1_BME280Data>::Status::OK) {
-      LOG_INF("BME280: Temp: %d, Press: %u, Hum: %u", bme_data.temperature, bme_data.pressure,
+      LOG_INF("BME280: Temp: %d, Press: %d, Hum: %u", bme_data.temperature, bme_data.pressure,
               bme_data.humidity);
       bme_read_ok = true;
     } else {
