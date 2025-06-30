@@ -4,3 +4,8 @@ west-commands:
       - name: register-device
         class: RegisterDeviceCommand
         help: Register BuzzNode device
+  - file: scripts/login.py
+    commands:
+      - name: login
+        class: LoginCommand
+        help: Login to BuzzCore API
