@@ -10,7 +10,7 @@
   #include <esp_sleep.h>
 #endif
 
-#include "Peripheral.hpp"
+#include "peripheral.hpp"
 
 constexpr size_t SLEEP_MANAGER_NAME_SIZE = 32;
 constexpr int DEFAULT_SLEEP_DURATION_MS = 5000;
