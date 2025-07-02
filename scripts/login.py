@@ -75,9 +75,9 @@ class LoginCommand(WestCommand):
 
         log.inf("Initiating new login process...")
         resp = requests.post(f"{self.BASE}/cli/auth/request").json()
-        device = resp["device_code"]
-        user_code = resp["user_code"]
-        verify_uri = f"{self.BASE}{resp['verification_uri']}?user_code={user_code}"
+        device = resp["deviceCode"]
+        user_code = resp["userCode"]
+        verify_uri = f"{self.BASE}{resp['verificationUri']}?user_code={user_code}"
 
         print(f"Open this URL in your browser and login:\n{verify_uri}\n")
         webbrowser.open(verify_uri)
@@ -85,7 +85,7 @@ class LoginCommand(WestCommand):
         while True:
             poll = requests.get(f"{self.BASE}/cli/auth/poll", params={"deviceCode": device})
             if poll.status_code == 200:
-                token = poll.json()["access_token"]
+                token = poll.json()["accessToken"]
                 self._save_token(token)
                 break
             elif poll.status_code == 410:
