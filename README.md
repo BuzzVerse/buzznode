@@ -12,6 +12,11 @@ Before getting started, make sure you have a proper Zephyr development
 environment. Follow the official
 [Zephyr Getting Started Guide](https://docs.zephyrproject.org/latest/getting_started/index.html).
 
+Also make sure that your virtual Python environment has additional dependencies installed - inside your virtual environment, run:
+```shell
+pip install grpcio-tools nanopb protobuf
+```
+
 ### Initialization
 
 ```shell
@@ -21,9 +26,11 @@ west init -m https://github.com/BuzzVerse/buzznode --mr main buzznode
 cd buzznode
 
 west config manifest.project-filter -- +nanopb
+west update
 west blobs fetch hal_espressif
 west blobs fetch hal_stm32
-west update
+cd buzznode/
+git submodule update --init --recursive
 ```
 
 ### Registering a device
@@ -38,8 +45,9 @@ west register-device --join-eui 70B3D57ED0000001
 First time system build:
 ```shell
 west build -b lora_node/esp32s3/procpu -p always app --sysbuild
-west flash --esp-device /dev/cu.usbmodem101
+west flash --esp-device [path to device]
 ```
+where path to device is e.g. /dev/ttyACM0 or /dev/cu.usbmodem101
 
 To build the application, run the following command:
 ```shell
@@ -48,12 +56,12 @@ west build -b lora_node/esp32s3/procpu -p always app
 
 Once you have built the application, run the following command to flash it:
 ```shell
-west flash --esp-device /dev/cu.usbmodem101
+west flash --esp-device [path to device]
 ```
 
 Monitor logs:
 ```shell
-west espressif monitor -p /dev/cu.usbmodem101
+west espressif monitor -p [path to device]
 ```
 
 ### Building and running STM32
@@ -69,7 +77,7 @@ west flash
 
 Monitor logs:
 ```shell
-minicom -D /dev/cu.usbmodem101
+minicom -D [path to device]
 ```
 
 ### Testing
@@ -110,5 +118,4 @@ Sphinx documentation (HTML) can be built using the following command:
 make html
 ```
 
-The output will be stored in the ``_build_sphinx`` folder. You may check for
-other output formats other than HTML by running ``make help``.
+The output will be stored in the ``_build_sphinx`` folder. You may check for other output formats other than HTML by running ``make help``.
