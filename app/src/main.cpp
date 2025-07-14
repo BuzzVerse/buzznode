@@ -10,6 +10,7 @@
 #include "sensors/bq27441/bq27441.hpp"
 #include "utils/banner.hpp"
 #include "utils/sleep-manager.hpp"
+#include "sensors/sen0308/sen0308.hpp"
 
 LOG_MODULE_REGISTER(main_entry, LOG_LEVEL_DBG);
 
@@ -31,6 +32,9 @@ int main(void) {
 
   BQ27441 bq27441(DEVICE_DT_GET_ANY(ti_bq274xx));
   LoRaWANHandler lorawan(bq27441);
+  SEN0308 soil_sensor(adc_dev, 8); // Channel 8 (GPIO8)
+  const device* adc_dev = DEVICE_DT_GET(DT_NODELABEL(adc));
+  soil_sensor.init();
 
   etl::unique_ptr<SleepManager> p_sleep_manager(nullptr);
 #ifdef CONFIG_ENABLE_DEVICE_SLEEP
@@ -39,6 +43,9 @@ int main(void) {
 
   Application app(sensors, lorawan, etl::move(p_sleep_manager));
 
+  SoilMoistureData soil_data;
+  if (soil_sensor.read_data(&soil_data) == Sensor<SoilMoistureData>::Status::OK) {
+    // Use soil_data.percent, etc.
   if (!app.init()) {
     LOG_ERR("Critical application initialization failed!");
 

@@ -94,6 +94,36 @@
 		int-gpios = <&gpio0 2 GPIO_ACTIVE_LOW>;
 	};
 };
+// Konfiguracja pinów ADC
+&pinctrl {
+    adc_in_pins: adc_in_pins {
+        pinmux =  <&gpio0 8 GPIO_ACTIVE_LOW>;
+    };
+};
+
+
+&adc1 {
+    status = "okay";
+    //pinctrl = <&adc_in_pins>;
+    //pinctrl-names = "default";
+    st,adc-clock-source = <1>;
+    st,adc-prescaler = <4>;
+
+
+    #address-cells = <1>;
+    #size-cells = <0>;
+
+
+    channel@1 {
+        reg = <1>;
+        zephyr,gain = "ADC_GAIN_1";
+        zephyr,reference = "ADC_REF_INTERNAL";
+        zephyr,resolution = <12>;
+        zephyr,input-positive = <1>;
+        zephyr,acquisition-time = <3>;  // Czas akwizycji
+    };
+};
+
 
 &spi3 {
 	#address-cells = <1>;
