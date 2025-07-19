@@ -42,9 +42,13 @@ Status BME280::read_data(buzzverse_v1_BME280Data* data) const {
   // Convert temperature to whole degrees (-128 to 127)
   data->temperature = static_cast<int8_t>(temp.val1);
 
+  double total_pressure_kPa = static_cast<double>(press.val1) + static_cast<double>(press.val2) / 1000000.0;
+  double pressure_hPa = total_pressure_kPa * 10.0;
+
+  int32_t rounded_pressure_hPa = static_cast<int32_t>(round(pressure_hPa));
+
   // Convert pressure as difference from 1000 hPa (-128 to 127)
-  int32_t raw_pressure = press.val1 * 10 + ((press.val2 * 10) / 100000);
-  data->pressure = static_cast<int8_t>(raw_pressure - 1000);
+  data->pressure = static_cast<int8_t>(rounded_pressure_hPa - 1000);
 
   // Convert humidity to whole percentage (0-100%)
   data->humidity = static_cast<uint8_t>(humidity.val1);

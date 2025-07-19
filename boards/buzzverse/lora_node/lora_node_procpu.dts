@@ -91,6 +91,7 @@
 		taper-current = <50>;
 		terminate-voltage = <3000>;
 		status = "okay";
+		int-gpios = <&gpio0 2 GPIO_ACTIVE_LOW>;
 	};
 };
 
