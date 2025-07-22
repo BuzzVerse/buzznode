@@ -4,9 +4,10 @@ import requests, time, webbrowser, sys
 import os
 import json
 
+
 class LoginCommand(WestCommand):
     TOKEN_FILE = os.path.join(os.path.expanduser("~"), ".buzznode_token")
-    BASE = "http://localhost:8080"
+    BASE = "https://buzzcore.bykowski.dev"
 
     def __init__(self):
         super().__init__(
@@ -37,7 +38,7 @@ class LoginCommand(WestCommand):
                 return data.get("access_token")
             except (IOError, json.JSONDecodeError) as e:
                 log.err(f"Error loading token: {e}. Re-authenticating.")
-                os.remove(self.TOKEN_FILE) # Remove corrupted file
+                os.remove(self.TOKEN_FILE)  # Remove corrupted file
         return None
 
     def _delete_token(self):
@@ -51,12 +52,16 @@ class LoginCommand(WestCommand):
 
     def _verify_and_use_token(self, token):
         log.inf("Verifying token...")
-        r = requests.get(f"{self.BASE}/me", headers={"Authorization": f"Bearer {token}"})
+        r = requests.get(
+            f"{self.BASE}/me", headers={"Authorization": f"Bearer {token}"}
+        )
         if r.status_code == 200:
             print("Successfully authenticated.")
             print(r.json())
 
-            r = requests.get(f"{self.BASE}/devices", headers={"Authorization": f"Bearer {token}"})
+            r = requests.get(
+                f"{self.BASE}/devices", headers={"Authorization": f"Bearer {token}"}
+            )
             print("Devices:", r.json())
             return True
         else:
@@ -65,13 +70,13 @@ class LoginCommand(WestCommand):
 
     def do_run(self, args, unknown_args):
         token = self._load_token()
-        
+
         if token:
             log.inf("Attempting to use saved token...")
             if self._verify_and_use_token(token):
                 return
             else:
-                self._delete_token()    
+                self._delete_token()
 
         log.inf("Initiating new login process...")
         resp = requests.post(f"{self.BASE}/cli/auth/request").json()
@@ -80,10 +85,12 @@ class LoginCommand(WestCommand):
         verify_uri = f"{self.BASE}{resp['verificationUri']}?user_code={user_code}"
 
         print(f"Open this URL in your browser and login:\n{verify_uri}\n")
-        webbrowser.open(verify_uri)
+        webbrowser.get("firefox").open(verify_uri)
 
         while True:
-            poll = requests.get(f"{self.BASE}/cli/auth/poll", params={"deviceCode": device})
+            poll = requests.get(
+                f"{self.BASE}/cli/auth/poll", params={"deviceCode": device}
+            )
             if poll.status_code == 200:
                 token = poll.json()["accessToken"]
                 self._save_token(token)
