@@ -3,6 +3,9 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/sys/reboot.h>
 
+#include "buzzverse/bme280.pb.h"
+#include "buzzverse/adc.pb.h"
+#include "buzzverse/bq27441.pb.h"
 #include "buzzverse/packet.pb.h"
 #include "peripherals/lorawan_handler/lorawan_handler.hpp"
 #include "utils/sleep-manager.hpp"

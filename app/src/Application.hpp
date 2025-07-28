@@ -9,6 +9,7 @@
 
 class LoRaWANHandler;
 class SleepManager;
+class SEN0308;
 
 class Application {
  public:

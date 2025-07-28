@@ -1,52 +1,82 @@
-// filepath: app/src/sensors/sen0308/sen0308.cpp
 #include "sen0308.hpp"
-#include <zephyr/logging/log.h>
 
-LOG_MODULE_REGISTER(sen0308, LOG_LEVEL_DBG);
+#include <zephyr/sys/printk.h> // Using printk for output
+#include <zephyr/kernel.h>     // For k_msleep
 
-SEN0308::SEN0308(const device* adc_dev, uint8_t channel)
-    : m_adc_dev(adc_dev), m_channel(channel) {}
+// Constructor: Now only takes the ADC spec.
+SEN0308::SEN0308(const struct adc_dt_spec* adc_spec)
+    : m_adc_spec(adc_spec){}
 
 Peripheral::Status SEN0308::init() {
-    if (!device_is_ready(m_adc_dev)) {
-        LOG_ERR("ADC device not ready");
+    if (!m_adc_spec || !device_is_ready(m_adc_spec->dev)) {
+        printk("ERROR: SEN0308: ADC device not ready or spec is invalid.\n");
+        m_ready = false;
         return Peripheral::Status::NOT_READY;
     }
+
+    // Setup the ADC channel.
+    int err = adc_channel_setup_dt(m_adc_spec);
+    if (err != 0) {
+        printk("ERROR: SEN0308: Failed to setup ADC channel %d (err %d)\n", m_adc_spec->channel_id, err);
+        m_ready = false;
+        return Peripheral::Status::INIT_ERR;
+    }
+
+    printk("SEN0308: ADC device ready, channel %d configured via DT\n", m_adc_spec->channel_id);
     m_ready = true;
     return Peripheral::Status::OK;
 }
 
+// Checks if the sensor is ready.
 bool SEN0308::is_ready() const { return m_ready; }
 
+// Returns the name of the peripheral.
 etl::string<PERIPHERAL_NAME_SIZE> SEN0308::get_name() const { return "SEN0308"; }
 
+// Reads data from the sensor.
+// Reads data from the sensor.
 Sensor<SoilMoistureData>::Status SEN0308::read_data(SoilMoistureData* data) const {
-    if (!m_ready || !data) return Status::READ_ERR;
+    if (!m_ready || !data) {
+        printk("ERROR: SEN0308: Sensor not ready or invalid data pointer.\n");
+        return Status::READ_ERR;
+    }
 
-    struct adc_channel_cfg channel_cfg = {};
-    channel_cfg.gain = ADC_GAIN_1;
-    channel_cfg.reference = ADC_REF_INTERNAL;
-    channel_cfg.acquisition_time = ADC_ACQ_TIME_DEFAULT;
-    channel_cfg.channel_id = m_channel;
-    adc_channel_setup(m_adc_dev, &channel_cfg);
-
-    struct adc_sequence sequence = {};
     uint16_t sample_buffer;
-    sequence.channels = BIT(m_channel);
+    struct adc_sequence sequence = {0};
+    int ret = adc_sequence_init_dt(m_adc_spec, &sequence);
+    if (ret != 0) {
+        printk("ERROR: SEN0308: Failed to initialize ADC sequence: %d\n", ret);
+        return Status::READ_ERR;
+    }
     sequence.buffer = &sample_buffer;
     sequence.buffer_size = sizeof(sample_buffer);
-    sequence.resolution = 12;
 
-    int ret = adc_read(m_adc_dev, &sequence);
+    ret = adc_read_dt(m_adc_spec, &sequence);
+
     if (ret) {
-        LOG_ERR("ADC read failed: %d", ret);
+        printk("ERROR: SEN0308: ADC read failed: %d\n", ret);
         return Status::READ_ERR;
     }
 
     data->raw_adc = sample_buffer;
-    data->voltage = (sample_buffer / 4095.0f) * 3.3f; // Adjust Vref as needed
-    data->percent = (1.0f - (data->voltage / 3.3f)) * 100.0f; // Example mapping
+    int32_t millivolts = sample_buffer;
+    ret = adc_raw_to_millivolts_dt(m_adc_spec, &millivolts);
+    if (ret) {
+        printk("ERROR: SEN0308: Failed to convert raw ADC to millivolts: %d\n", ret);
+        return Status::READ_ERR;
+    }
+    data->voltage = static_cast<float>(millivolts) / 1000.0f;
 
-    LOG_DBG("Soil Moisture ADC: %u, V: %.2f, %%: %.1f", data->raw_adc, data->voltage, data->percent);
+    const float VOLTAGE_DRY = 2.97f; // From your measurement in air.
+    const float VOLTAGE_WET = 0.40f; // From your measurement in water.
+
+    float range = VOLTAGE_DRY - VOLTAGE_WET;
+    if (range <= 0) {
+        data->percent = 0; // Avoid division by zero or negative numbers.
+    } else {
+        float percent = 100.0f * (VOLTAGE_DRY - data->voltage) / range;
+        data->percent = (percent < 0.0f) ? 0.0f : (percent > 100.0f) ? 100.0f : percent;
+    }
+
     return Status::OK;
 }

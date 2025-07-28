@@ -1,8 +1,8 @@
 #include <zephyr/device.h>
 #include <zephyr/kernel.h>
-#include <zephyr/logging/log.h>
-#include <zephyr/sys/printk.h>
+#include <zephyr/sys/printk.h> // Using printk for output
 #include <zephyr/sys/reboot.h>
+#include <zephyr/drivers/adc.h> // Include for adc_dt_spec
 
 #include "Application.hpp"
 #include "peripherals/lorawan_handler/lorawan_handler.hpp"
@@ -12,17 +12,34 @@
 #include "utils/sleep-manager.hpp"
 #include "sensors/sen0308/sen0308.hpp"
 
-LOG_MODULE_REGISTER(main_entry, LOG_LEVEL_DBG);
-
 #ifdef CONFIG_SLEEP_TIME_MS
   #define APP_SLEEP_DURATION_MS CONFIG_SLEEP_TIME_MS
 #else
   #define APP_SLEEP_DURATION_MS 10000
 #endif
 
+// ADC specification for the soil sensor.
+static const struct adc_dt_spec soil_adc_spec = {
+    .dev = DEVICE_DT_GET(DT_PARENT(DT_NODELABEL(soil_sensor))),
+    .channel_id = DT_REG_ADDR(DT_NODELABEL(soil_sensor)),
+    .channel_cfg_dt_node_exists = true,
+    .channel_cfg = ADC_CHANNEL_CFG_DT(DT_NODELABEL(soil_sensor)),
+    .vref_mv = DT_PROP_OR(DT_NODELABEL(soil_sensor), zephyr_vref_mv, 0),
+    .resolution = DT_PROP(DT_NODELABEL(soil_sensor), zephyr_resolution),
+    .oversampling = DT_PROP_OR(DT_NODELABEL(soil_sensor), zephyr_oversampling, 0),
+};
+
+// The GPIO spec for the enable pin is no longer needed.
+
 int main(void) {
+  // Add a long delay at the very start of main.
+  // This gives the continuously-powered sensor plenty of time to stabilize
+  // after the whole board powers on, fulfilling the "bigger wait" request.
+  printk("Waiting for sensor to stabilize after power-on...\n");
+  k_msleep(5000); // Wait 5 seconds
+
   printk("%s\n", APP_ASCII_BANNER);
-  LOG_INF("===== Buzzverse Node System Booting (Zephyr Log) =====");
+  printk("===== Buzzverse Node System Booting =====\n");
 
   BME280 bme280(DEVICE_DT_GET_ANY(bosch_bme280));
   // Array of available sensors
@@ -32,7 +49,8 @@ int main(void) {
 
   BQ27441 bq27441(DEVICE_DT_GET_ANY(ti_bq274xx));
   LoRaWANHandler lorawan(bq27441);
-  SEN0308 soil_sensor(adc_dev, 8); // Channel 8 (GPIO8)
+  // Construct the sensor object, passing only the ADC spec.
+  SEN0308 soil_sensor(&soil_adc_spec);
   const device* adc_dev = DEVICE_DT_GET(DT_NODELABEL(adc));
   soil_sensor.init();
 
@@ -42,23 +60,27 @@ int main(void) {
 #endif
 
   Application app(sensors, lorawan, etl::move(p_sleep_manager));
+  
+  if (soil_sensor.init() != Peripheral::Status::OK) {
+      printk("ERROR: SEN0308 initialization failed. Halting.\n");
+      while (true) { k_sleep(K_SECONDS(1)); }
+  } else {
+      printk("SEN0308 initialized successfully.\n");
+  }
 
-  SoilMoistureData soil_data;
-  if (soil_sensor.read_data(&soil_data) == Sensor<SoilMoistureData>::Status::OK) {
-    // Use soil_data.percent, etc.
-  if (!app.init()) {
-    LOG_ERR("Critical application initialization failed!");
-
-    buzzverse_v1_Packet packet = buzzverse_v1_Packet_init_default;
-    app.generate_init_failure_report(packet);
-
-    if (lorawan.is_ready()) {
-      LOG_ERR("Attempting to send failure status packet via LoRaWAN...");
-      lorawan.send_packet(packet);
+  while (true)
+  {
+    printk("Reading soil moisture data...\n");
+    SoilMoistureData soil_data;
+    if (soil_sensor.read_data(&soil_data) == Sensor<SoilMoistureData>::Status::OK) {
+        printk("Soil Moisture Data: Raw ADC: %d, Voltage: %.2f V, Percent: %.2f %%\n",
+                soil_data.raw_adc,
+                (double)soil_data.voltage,
+                (double)soil_data.percent);
+    } else {
+        printk("ERROR: Failed to read soil moisture data.\n");
     }
-
-    LOG_ERR("Rebooting device due to critical initialization failure.");
-    sys_reboot(SYS_REBOOT_COLD);
+    k_msleep(APP_SLEEP_DURATION_MS);
   }
 
   app.run_cycle();
