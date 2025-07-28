@@ -68,6 +68,19 @@ config LORAWAN_NWK_SKEY
     help
       LoRaWAN Network Session Key in hex format (32 characters) for ABP mode
 
+config ENABLE_DEVICE_SLEEP
+    bool "Enable Device Sleep"
+    default y
+    help
+        Enable device sleep functionality to save power when not in use. When enabled, the device will enter a low-power sleep mode when not actively transmitting or receiving data.
+
+config SLEEP_TIME_MS
+    int "Sleep Time (ms)"
+    default 10000
+    depends on ENABLE_DEVICE_SLEEP
+    help
+        Duration for which the device will sleep before waking up. This value is in milliseconds.
+
 source "Kconfig.zephyr"
 endmenu
 
