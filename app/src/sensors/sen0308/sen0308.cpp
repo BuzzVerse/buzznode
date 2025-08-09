@@ -68,17 +68,29 @@ Status SEN0308::read_data(buzzverse_v1_SEN0308Data* data) const {
         return Status::READ_ERR;
     }
 
-    // Calculate percent (0-100%) databased on voltage range
-    const float VOLTAGE_DRY = 2.97f; // air
-    const float VOLTAGE_WET = 0.33f; // water
-    float voltage = static_cast<float>(millivolts) / 1000.0f;
-    float range = VOLTAGE_DRY - VOLTAGE_WET;
-    float percent = (range > 0) ? 100.0f * (VOLTAGE_DRY - voltage) / range : 0.0f;
-    if (percent < 0.0f) percent = 0.0f;
-    if (percent > 100.0f) percent = 100.0f;
-    data->percent = percent;
+    const int32_t VOLTAGE_DRY_MV = 2970; // 2.97V
+    const int32_t VOLTAGE_WET_MV = 330;  // 0.33V
+    const int32_t VOLTAGE_RANGE_MV = VOLTAGE_DRY_MV - VOLTAGE_WET_MV;
 
-    LOG_DBG("SEN0308: Raw ADC: %u, Voltage: %.2f V, Percent: %.1f%%", sample_buffer, voltage, percent);
+    int32_t percent_int;
+    
+    // check for division by zero
+    if (VOLTAGE_RANGE_MV > 0) {
+        percent_int = (100 * (VOLTAGE_DRY_MV - millivolts)) / VOLTAGE_RANGE_MV;
+    } else {
+        percent_int = 0;
+    }
+
+    // Clamp the percentage to the range [0, 100]
+    if (percent_int < 0) {
+        data->percent = 0;
+    } else if (percent_int > 100) {
+        data->percent = 100;
+    } else {
+        data->percent = percent_int;
+    }
+    
+    LOG_DBG("SEN0308: Raw ADC: %u, Voltage: %u mV, Percent: %u%%", sample_buffer, millivolts, data->percent);
 
     return Status::OK;
 }
