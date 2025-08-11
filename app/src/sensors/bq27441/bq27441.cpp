@@ -9,7 +9,7 @@ LOG_MODULE_REGISTER(bq27441, LOG_LEVEL_DBG);
 
 BQ27441::BQ27441(const device* dev) : bq27441_dev(dev) {}
 
-using Status = Sensor<buzzverse_v1_BQ27441Data>::Status;
+using Status = Sensor::Status;
 
 Peripheral::Status BQ27441::init() {
   if (!device_is_ready(bq27441_dev)) {
@@ -22,8 +22,10 @@ Peripheral::Status BQ27441::init() {
   return Peripheral::Status::OK;
 }
 
-Status BQ27441::read_data(buzzverse_v1_BQ27441Data* data) const {
+Status BQ27441::read_data(void* data_pointer) const {
   struct sensor_value voltage, current, state_of_charge;
+
+	buzzverse_v1_BQ27441Data* data = static_cast<buzzverse_v1_BQ27441Data*>(data_pointer);
 
   if (sensor_sample_fetch(bq27441_dev) != 0) {
     LOG_ERR("Failed to fetch BQ27441 data");
@@ -40,9 +42,9 @@ Status BQ27441::read_data(buzzverse_v1_BQ27441Data* data) const {
   data->current_ma = (current.val1 * 1000) + (current.val2 / 1000);  // Convert A to mA
   data->state_of_charge = state_of_charge.val1;                      // Percentage
 
-  LOG_DBG("Voltage: %d mV", data->voltage_mv);
-  LOG_DBG("Current: %d mA", data->current_ma);
-  LOG_DBG("State of charge: %d%%", data->state_of_charge);
+  LOG_INF("Voltage: %d mV", data->voltage_mv);
+  LOG_INF("Current: %d mA", data->current_ma);
+  LOG_INF("State of charge: %d%%", data->state_of_charge);
 
   return Status::OK;
 }

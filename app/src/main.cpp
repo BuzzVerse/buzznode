@@ -34,7 +34,7 @@ int main(void) {
   p_sleep_manager = &sleep_manager_instance;
 #endif
 
-  Application app(bme280, bq27441, lorawan, p_sleep_manager);
+  Application app(&bme280, &bq27441, lorawan, p_sleep_manager);
 
   if (!app.init()) {
     LOG_ERR("Critical application initialization failed!");

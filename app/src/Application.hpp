@@ -1,8 +1,10 @@
 #ifndef APPLICATION_HPP
 #define APPLICATION_HPP
 
+#include <vector>
 #include "buzzverse/bme280.pb.h"
 #include "buzzverse/packet.pb.h"
+#include "sensor.hpp"
 
 class BME280;
 class BQ27441;
@@ -19,7 +21,7 @@ class Application {
    * @param lorawan Reference to the LoRaWAN handler.
    * @param sleep_manager Pointer to the SleepManager. Can be nullptr if sleep is disabled.
    */
-  Application(BME280& bme280, BQ27441& bq27441, LoRaWANHandler& lorawan,
+  Application(BME280* bme280, BQ27441* bq27441, LoRaWANHandler& lorawan,
               SleepManager* sleep_manager);
   ~Application() = default;
 
@@ -51,10 +53,10 @@ class Application {
   void read_sensor_data(buzzverse_v1_BME280Data& bme_data);
   void send_lora_packet(const buzzverse_v1_BME280Data& bme_data);
 
-  BME280& m_bme280;
-  BQ27441& m_bq27441;
   LoRaWANHandler& m_lorawan;
   SleepManager* m_sleep_manager;
+
+	std::vector<Sensor*> sensors;
 };
 
 #endif  // APPLICATION_HPP

@@ -7,7 +7,7 @@
 #include "buzzverse/bme280.pb.h"
 #include "sensor.hpp"
 
-class BME280 : public Sensor<buzzverse_v1_BME280Data> {
+class BME280 : public Sensor {
  public:
   explicit BME280(const device* dev);
 
@@ -21,7 +21,7 @@ class BME280 : public Sensor<buzzverse_v1_BME280Data> {
     return "BME280";
   }
 
-  Status read_data(buzzverse_v1_BME280Data* data) const override;
+  Status read_data(void* data_pointer) const override;
 
  private:
   const device* bme280_dev;

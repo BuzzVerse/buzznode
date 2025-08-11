@@ -3,7 +3,6 @@
 
 #include "peripheral.hpp"
 
-template <typename DataType>
 class Sensor : public Peripheral {
  public:
   virtual ~Sensor() = default;
@@ -24,7 +23,7 @@ class Sensor : public Peripheral {
    * @retval OK if the data is successfully read
    * @retval READ_ERR if the sensor read fails
    */
-  virtual Status read_data(DataType* data) const = 0;
+  virtual Status read_data(void* data_pointer) const = 0;
 };
 
 #endif  // SENSOR_HPP

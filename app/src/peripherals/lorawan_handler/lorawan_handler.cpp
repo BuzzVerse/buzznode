@@ -10,9 +10,9 @@
 
 LOG_MODULE_REGISTER(lorawan_handler, LOG_LEVEL_DBG);
 
-Sensor<buzzverse_v1_BQ27441Data>* LoRaWANHandler::battery_sensor = nullptr;
+Sensor* LoRaWANHandler::battery_sensor = nullptr;
 
-LoRaWANHandler::LoRaWANHandler(Sensor<buzzverse_v1_BQ27441Data>& battery_sensor) {
+LoRaWANHandler::LoRaWANHandler(Sensor& battery_sensor) {
   LoRaWANHandler::battery_sensor = &battery_sensor;
 
 #if defined(CONFIG_LORAWAN_JOIN_OTAA)
@@ -66,7 +66,7 @@ uint8_t LoRaWANHandler::battery_level_callback() {
 
   buzzverse_v1_BQ27441Data battery_data = buzzverse_v1_BQ27441Data_init_zero;
   auto status = battery_sensor->read_data(&battery_data);
-  if (Sensor<buzzverse_v1_BQ27441Data>::Status::OK != status) {
+  if (Sensor::Status::OK != status) {
     LOG_ERR("Battery sensor read failed: %d", static_cast<int>(status));
     return 255;
   }

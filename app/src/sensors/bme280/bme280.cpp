@@ -9,7 +9,7 @@ LOG_MODULE_REGISTER(bme280, LOG_LEVEL_DBG);
 
 BME280::BME280(const device* dev) : bme280_dev(dev) {}
 
-using Status = Sensor<buzzverse_v1_BME280Data>::Status;
+using Status = Sensor::Status;
 
 Peripheral::Status BME280::init() {
   if (!device_is_ready(bme280_dev)) {
@@ -22,8 +22,10 @@ Peripheral::Status BME280::init() {
   return Peripheral::Status::OK;
 }
 
-Status BME280::read_data(buzzverse_v1_BME280Data* data) const {
+Status BME280::read_data(void* data_pointer) const {
   struct sensor_value temp, press, humidity;
+
+	buzzverse_v1_BME280Data* data = static_cast<buzzverse_v1_BME280Data*>(data_pointer);
 
   if (nullptr == data) {
     LOG_ERR("Invalid data pointer");
@@ -53,9 +55,9 @@ Status BME280::read_data(buzzverse_v1_BME280Data* data) const {
   // Convert humidity to whole percentage (0-100%)
   data->humidity = static_cast<uint8_t>(humidity.val1);
 
-  LOG_DBG("Temperature: %d C", data->temperature);
-  LOG_DBG("Pressure (Difference from 1000 hPa): %d hPa", data->pressure);
-  LOG_DBG("Humidity: %d %%", data->humidity);
+  LOG_INF("Temperature: %d C", data->temperature);
+  LOG_INF("Pressure (Difference from 1000 hPa): %d hPa", data->pressure);
+  LOG_INF("Humidity: %d %%", data->humidity);
 
   return Status::OK;
 }

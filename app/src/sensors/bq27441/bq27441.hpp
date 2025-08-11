@@ -7,7 +7,7 @@
 #include "buzzverse/bq27441.pb.h"
 #include "sensor.hpp"
 
-class BQ27441 : public Sensor<buzzverse_v1_BQ27441Data> {
+class BQ27441 : public Sensor {
  public:
   explicit BQ27441(const device* dev);
 
@@ -21,7 +21,7 @@ class BQ27441 : public Sensor<buzzverse_v1_BQ27441Data> {
     return "BQ27441";
   }
 
-  Status read_data(buzzverse_v1_BQ27441Data* data) const override;
+  Status read_data(void* data_pointer) const override;
 
  private:
   const device* bq27441_dev;

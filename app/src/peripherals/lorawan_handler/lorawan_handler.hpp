@@ -11,7 +11,7 @@
 
 class LoRaWANHandler : public Peripheral {
  public:
-  explicit LoRaWANHandler(Sensor<buzzverse_v1_BQ27441Data>& battery_sensor);
+  explicit LoRaWANHandler(Sensor& battery_sensor);
 
   static constexpr uint8_t LORAWAN_PORT = 2;
 
@@ -54,7 +54,7 @@ class LoRaWANHandler : public Peripheral {
   etl::array<uint8_t, KEY_SIZE> app_skey;
   etl::array<uint8_t, KEY_SIZE> nwk_skey;
 
-  static Sensor<buzzverse_v1_BQ27441Data>* battery_sensor;
+  static Sensor* battery_sensor;
   static uint8_t battery_level_callback();
 };
 
