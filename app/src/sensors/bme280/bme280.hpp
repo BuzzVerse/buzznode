@@ -23,6 +23,8 @@ class BME280 : public Sensor {
 
   Status read_data(void* data_pointer) const override;
 
+	void set_status(buzzverse_v1_Status& status_message, buzzverse_v1_Status_ComponentState status_component_state) const override;
+
  private:
   const device* bme280_dev;
   bool ready{false};

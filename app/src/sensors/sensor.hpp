@@ -2,6 +2,7 @@
 #define SENSOR_HPP
 
 #include "peripheral.hpp"
+#include "buzzverse/packet.pb.h"
 
 class Sensor : public Peripheral {
  public:
@@ -24,6 +25,8 @@ class Sensor : public Peripheral {
    * @retval READ_ERR if the sensor read fails
    */
   virtual Status read_data(void* data_pointer) const = 0;
+
+	virtual void set_status(buzzverse_v1_Status& status_message, buzzverse_v1_Status_ComponentState status_component_state) const = 0;
 };
 
 #endif  // SENSOR_HPP

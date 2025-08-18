@@ -61,3 +61,7 @@ Status BME280::read_data(void* data_pointer) const {
 
   return Status::OK;
 }
+
+void BME280::set_status(buzzverse_v1_Status& status_message, buzzverse_v1_Status_ComponentState status_component_state) const {
+	status_message.bme280_status = status_component_state;
+}

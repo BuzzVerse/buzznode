@@ -79,15 +79,15 @@ void Application::generate_init_failure_report(buzzverse_v1_Packet& packet) {
   auto& status_msg = packet.data.status;
 
   // Assume OK by default, then mark failures.
-  status_msg.bme280_status = buzzverse_v1_Status_ComponentState_NORMAL;
-  status_msg.bq27441_status = buzzverse_v1_Status_ComponentState_NORMAL;
+  for(auto sensor: sensors) {
+	  sensor->set_status(status_msg, buzzverse_v1_Status_ComponentState_NORMAL);
+  }
   status_msg.lorawan_status = buzzverse_v1_Status_ComponentState_NORMAL;
 
 	for(auto sensor: sensors) {
 		if (!sensor->is_ready()) {
 			LOG_WRN("%s failed initialization.", sensor->get_name().c_str());
-			// TODO status setting
-			//status_msg.bme280_status = buzzverse_v1_Status_ComponentState_INITIALIZATION_FAILED;
+			sensor->set_status(status_msg, buzzverse_v1_Status_ComponentState_INITIALIZATION_FAILED);
 		}
 	}
 
