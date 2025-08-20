@@ -34,6 +34,10 @@
 		bq27441-i2c = &i2c0;
 		lora0 = &lora0;
 	};
+	    zephyr,user {
+        io-channels = <&adc1 6>;
+        io-channels-names = "a0";
+    };
 
 	leds {
 		compatible = "gpio-leds";
@@ -104,23 +108,17 @@
 
 &adc1 {
     status = "okay";
-    //pinctrl = <&adc_in_pins>;
-    //pinctrl-names = "default";
-    st,adc-clock-source = <1>;
-    st,adc-prescaler = <4>;
-
 
     #address-cells = <1>;
     #size-cells = <0>;
 
-
-    channel@1 {
-        reg = <1>;
+    /* Add the label 'soil_sensor' here so the C++ code can find it */
+    soil_sensor: channel@6 {
+        reg = <6>;
         zephyr,gain = "ADC_GAIN_1";
         zephyr,reference = "ADC_REF_INTERNAL";
+        zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
         zephyr,resolution = <12>;
-        zephyr,input-positive = <1>;
-        zephyr,acquisition-time = <3>;  // Czas akwizycji
     };
 };
 

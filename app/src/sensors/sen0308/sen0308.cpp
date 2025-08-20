@@ -7,19 +7,9 @@
 
 LOG_MODULE_REGISTER(sen0308, LOG_LEVEL_DBG);
 
-static const struct adc_dt_spec soil_adc_spec = {
-    .dev = DEVICE_DT_GET(DT_PARENT(DT_NODELABEL(soil_sensor))),
-    .channel_id = DT_REG_ADDR(DT_NODELABEL(soil_sensor)),
-    .channel_cfg_dt_node_exists = true,
-    .channel_cfg = ADC_CHANNEL_CFG_DT(DT_NODELABEL(soil_sensor)),
-    .vref_mv = DT_PROP_OR(DT_NODELABEL(soil_sensor), zephyr_vref_mv, 0),
-    .resolution = DT_PROP(DT_NODELABEL(soil_sensor), zephyr_resolution),
-    .oversampling = DT_PROP_OR(DT_NODELABEL(soil_sensor), zephyr_oversampling, 0),
-};
-
-SEN0308::SEN0308()
-    : m_adc_spec(&soil_adc_spec) {}
-
+SEN0308::SEN0308(const struct adc_dt_spec* adc_spec)
+    : m_adc_spec(adc_spec) {}
+    
 using Status = Sensor<buzzverse_v1_SEN0308Data>::Status;
 
 Peripheral::Status SEN0308::init() {

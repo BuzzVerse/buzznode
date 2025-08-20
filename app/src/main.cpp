@@ -13,8 +13,6 @@
 #include "utils/banner.hpp"
 #include "utils/sleep-manager.hpp"
 
-
-
 LOG_MODULE_REGISTER(main_entry, LOG_LEVEL_DBG);
 
 #ifdef CONFIG_SLEEP_TIME_MS
@@ -22,6 +20,10 @@ LOG_MODULE_REGISTER(main_entry, LOG_LEVEL_DBG);
 #else
   #define APP_SLEEP_DURATION_MS 10000
 #endif
+
+static const struct adc_dt_spec soil_sensor_adc_spec =
+    ADC_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 0);
+
 
 int main(void) {
   printk("%s\n", APP_ASCII_BANNER);
@@ -34,7 +36,7 @@ int main(void) {
   };
 
   BQ27441 bq27441(DEVICE_DT_GET_ANY(ti_bq274xx));
-  SEN0308 sen0308;
+  SEN0308 sen0308(&soil_sensor_adc_spec);
   LoRaWANHandler lorawan(bq27441);
   // Construct the sensor object, passing only the ADC spec.
   SEN0308 soil_sensor(&soil_adc_spec);

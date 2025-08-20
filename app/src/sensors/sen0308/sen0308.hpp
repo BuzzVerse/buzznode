@@ -17,7 +17,7 @@ public:
      * @param adc_spec A pointer to the ADC device tree specification struct.
      * This is obtained using ADC_DT_SPEC_GET() in your main application.
      */
-    explicit SEN0308();
+    explicit SEN0308(const struct adc_dt_spec* adc_spec);
 
     // Initializes the sensor hardware (ADC channel setup).
     Peripheral::Status init() override;
@@ -34,7 +34,8 @@ public:
 
     // Reads data from the sensor and populates the SoilMoistureData struct.
     
-    Status read_data(buzzverse_v1_SEN0308Data* data) const override;
+    Sensor<buzzverse_v1_SEN0308Data>::Status read_data(buzzverse_v1_SEN0308Data* data) const override;
+
 
 private:
     // A pointer to the ADC specification struct from the device tree.
