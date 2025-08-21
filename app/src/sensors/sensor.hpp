@@ -26,7 +26,9 @@ class Sensor : public Peripheral {
    */
   virtual Status read_data(void* data_pointer) const = 0;
 
-	virtual void set_status(buzzverse_v1_Status& status_message, buzzverse_v1_Status_ComponentState status_component_state) const = 0;
+  virtual Status get_packet(buzzverse_v1_Packet& packet) const = 0;
+
+  virtual void set_status(buzzverse_v1_Status& status_message, buzzverse_v1_Status_ComponentState status_component_state) const = 0;
 };
 
 #endif  // SENSOR_HPP

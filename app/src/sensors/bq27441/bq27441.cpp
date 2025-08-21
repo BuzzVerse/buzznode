@@ -49,6 +49,11 @@ Status BQ27441::read_data(void* data_pointer) const {
   return Status::OK;
 }
 
+Status BQ27441::get_packet(buzzverse_v1_Packet& packet) const {
+	// Currently no need to have a BQ27441 packet, as battery data is sent in the Status packet instead.
+	return Status::OK;
+}
+
 void BQ27441::set_status(buzzverse_v1_Status& status_message, buzzverse_v1_Status_ComponentState status_component_state) const {
 	status_message.bq27441_status = status_component_state;
 }

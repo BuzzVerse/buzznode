@@ -3,12 +3,8 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/sys/reboot.h>
 
-#include "buzzverse/bme280.pb.h"
-#include "buzzverse/bq27441.pb.h"
 #include "buzzverse/packet.pb.h"
 #include "peripherals/lorawan_handler/lorawan_handler.hpp"
-#include "sensors/bme280/bme280.hpp"
-#include "sensors/bq27441/bq27441.hpp"
 #include "utils/sleep-manager.hpp"
 
 LOG_MODULE_REGISTER(application, CONFIG_APP_LOG_LEVEL);
@@ -98,14 +94,22 @@ void Application::generate_init_failure_report(buzzverse_v1_Packet& packet) {
 }
 
 void Application::run_cycle() {
-  LOG_INF("--- Starting Application Cycle ---");
+	LOG_INF("--- Starting Application Cycle ---");
 
-  buzzverse_v1_BME280Data bme280_data = buzzverse_v1_BME280Data_init_zero;
+	for(auto sensor: m_sensors) {
+		if (sensor->is_ready()) {
+			buzzverse_v1_Packet packet;
+			if (sensor->get_packet(packet) == Sensor::Status::OK) {
+				send_lora_packet(packet);
+			} else {
+				LOG_ERR("Failed to get %s packet", sensor->get_name().c_str());
+			}
+		} else {
+			LOG_ERR("%s not ready for reading.", sensor->get_name().c_str());
+		}
+	}
 
-  read_sensor_data(bme280_data);
-  send_lora_packet(bme280_data);
-
-  LOG_INF("--- Application Cycle Complete ---");
+	LOG_INF("--- Application Cycle Complete ---");
 }
 
 void Application::enter_low_power_mode(int sleep_duration_ms) {
@@ -127,35 +131,8 @@ void Application::enter_low_power_mode(int sleep_duration_ms) {
   sys_reboot(SYS_REBOOT_COLD);
 }
 
-void Application::read_sensor_data(buzzverse_v1_BME280Data& bme_data) {
-  LOG_INF("Reading sensor data...");
-
-	for(auto sensor: m_sensors) {
-		if (sensor->is_ready()) {
-			if (sensor->read_data(&bme_data) != Sensor::Status::OK) {
-				LOG_ERR("Failed to read %s data.", sensor->get_name().c_str());
-			}
-		} else {
-			LOG_ERR("%s not ready for reading.", sensor->get_name().c_str());
-		}
-	}
-}
-
-void Application::send_lora_packet(const buzzverse_v1_BME280Data& bme_data) {
+void Application::send_lora_packet(const buzzverse_v1_Packet& packet) {
   LOG_INF("Preparing LoRaWAN application packet...");
-
-  bool bme_has_valid_data =
-    !(bme_data.temperature == 0 && bme_data.pressure == 0 && bme_data.humidity == 0);
-
-  if (!bme_has_valid_data) {
-    LOG_WRN("No valid BME280 data to construct an application packet.");
-    return;
-  }
-
-  buzzverse_v1_Packet packet = buzzverse_v1_Packet_init_default;
-  packet.which_data = buzzverse_v1_Packet_bme280_tag;
-  packet.data.bme280 = bme_data;
-  LOG_DBG("Application packet constructed with BME280 data.");
 
   if (m_lorawan.is_ready()) {
     LOG_INF("Attempting to send application packet via LoRaWAN...");

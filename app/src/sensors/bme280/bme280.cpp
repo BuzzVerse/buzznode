@@ -62,6 +62,29 @@ Status BME280::read_data(void* data_pointer) const {
   return Status::OK;
 }
 
+Status BME280::get_packet(buzzverse_v1_Packet& packet) const {
+	buzzverse_v1_BME280Data bme_data = buzzverse_v1_BME280Data_init_zero;
+
+	if(read_data(&bme_data) != Sensor::Status::OK) {
+		return Status::READ_ERR;
+	}
+
+	bool bme_has_valid_data =
+		!(bme_data.temperature == 0 && bme_data.pressure == 0 && bme_data.humidity == 0);
+
+	if (!bme_has_valid_data) {
+		LOG_WRN("No valid BME280 data to construct an application packet.");
+		return Status::READ_ERR;
+	}
+
+	packet = buzzverse_v1_Packet_init_default;
+	packet.which_data = buzzverse_v1_Packet_bme280_tag;
+	packet.data.bme280 = bme_data;
+	LOG_DBG("Application packet constructed with BME280 data.");
+
+	return Status::OK;
+}
+
 void BME280::set_status(buzzverse_v1_Status& status_message, buzzverse_v1_Status_ComponentState status_component_state) const {
 	status_message.bme280_status = status_component_state;
 }
