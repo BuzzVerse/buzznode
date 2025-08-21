@@ -13,9 +13,9 @@
 
 LOG_MODULE_REGISTER(application, CONFIG_APP_LOG_LEVEL);
 
-Application::Application(BME280* bme280, BQ27441* bq27441, LoRaWANHandler& lorawan,
+Application::Application(etl::array<Sensor*, NUMBER_OF_SENSORS> sensors, LoRaWANHandler& lorawan,
                          SleepManager* sleep_manager)
-		: sensors{bme280, bq27441}, m_lorawan(lorawan), m_sleep_manager(sleep_manager) {}
+		: m_sensors(sensors), m_lorawan(lorawan), m_sleep_manager(sleep_manager) {}
 
 bool Application::init() {
   LOG_INF("Application core initializing...");
@@ -40,7 +40,7 @@ bool Application::initialize_peripherals() {
   bool all_essential_ready = true;
 
 	// Initialize sensors
-	for(auto sensor: sensors) {
+	for(auto sensor: m_sensors) {
 		LOG_DBG("Initializing: %s", sensor->get_name().c_str());
 		if (sensor->init() != Peripheral::Status::OK) {
 			LOG_ERR("%s initialization failed.", sensor->get_name().c_str());
@@ -79,12 +79,12 @@ void Application::generate_init_failure_report(buzzverse_v1_Packet& packet) {
   auto& status_msg = packet.data.status;
 
   // Assume OK by default, then mark failures.
-  for(auto sensor: sensors) {
+  for(auto sensor: m_sensors) {
 	  sensor->set_status(status_msg, buzzverse_v1_Status_ComponentState_NORMAL);
   }
   status_msg.lorawan_status = buzzverse_v1_Status_ComponentState_NORMAL;
 
-	for(auto sensor: sensors) {
+	for(auto sensor: m_sensors) {
 		if (!sensor->is_ready()) {
 			LOG_WRN("%s failed initialization.", sensor->get_name().c_str());
 			sensor->set_status(status_msg, buzzverse_v1_Status_ComponentState_INITIALIZATION_FAILED);
@@ -130,7 +130,7 @@ void Application::enter_low_power_mode(int sleep_duration_ms) {
 void Application::read_sensor_data(buzzverse_v1_BME280Data& bme_data) {
   LOG_INF("Reading sensor data...");
 
-	for(auto sensor: sensors) {
+	for(auto sensor: m_sensors) {
 		if (sensor->is_ready()) {
 			if (sensor->read_data(&bme_data) != Sensor::Status::OK) {
 				LOG_ERR("Failed to read %s data.", sensor->get_name().c_str());
