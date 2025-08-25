@@ -19,15 +19,29 @@ class Sensor : public Peripheral {
   /**
    * @brief Read data from the sensor
    *
-   * @param data Pointer to the data structure to populate
+   * @param data_pointer Pointer to the data structure to populate
    * @return Status
    * @retval OK if the data is successfully read
    * @retval READ_ERR if the sensor read fails
    */
   virtual Status read_data(void* data_pointer) const = 0;
 
+  /**
+   * @brief Read data from the sensor and get a packet containing the readout
+   *
+   * @param packet Reference to a packet to populate
+   * @return Status
+   * @retval OK if the data is successfully read and packet is constructed
+   * @retval READ_ERR if the sensor read fails
+   */
   virtual Status get_packet(buzzverse_v1_Packet& packet) const = 0;
 
+  /**
+   * @brief Sets value of a field in the status message struct corresponding to the correct sensor
+   *
+   * @param status_message Reference to the status message struct
+   * @param status_component_state Status state to be set for a particular sensor
+   */
   virtual void set_status(buzzverse_v1_Status& status_message, buzzverse_v1_Status_ComponentState status_component_state) const = 0;
 };
 
