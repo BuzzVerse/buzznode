@@ -33,9 +33,7 @@ public:
     }
 
     // Reads data from the sensor and populates the SoilMoistureData struct.
-    
     Sensor<buzzverse_v1_SEN0308Data>::Status read_data(buzzverse_v1_SEN0308Data* data) const override;
-
 
 private:
     // A pointer to the ADC specification struct from the device tree.
