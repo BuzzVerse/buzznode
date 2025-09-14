@@ -37,10 +37,9 @@ class Sensor : public Peripheral {
   virtual Status get_packet(buzzverse_v1_Packet& packet) const = 0;
 
   /**
-   * @brief Sets value of a field in the status message struct corresponding to the correct sensor
+   * @brief Gets sensor status value and assigns it to a field in the status message struct corresponding to the correct sensor
    *
    * @param status_message Reference to the status message struct
-   * @param status_component_state Status state to be set for a particular sensor
    */
   virtual void get_status(buzzverse_v1_Status& status_message) const = 0;
 };
