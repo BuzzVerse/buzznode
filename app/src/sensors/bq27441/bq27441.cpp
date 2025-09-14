@@ -54,6 +54,11 @@ Status BQ27441::get_packet(buzzverse_v1_Packet& packet) const {
 	return Status::OK;
 }
 
-void BQ27441::set_status(buzzverse_v1_Status& status_message, buzzverse_v1_Status_ComponentState status_component_state) const {
-	status_message.bq27441_status = status_component_state;
+void BQ27441::get_status(buzzverse_v1_Status& status_message) const {
+	if(is_ready())
+		status_message.bq27441_status = buzzverse_v1_Status_ComponentState_NORMAL;
+	else {
+		status_message.bq27441_status = buzzverse_v1_Status_ComponentState_INITIALIZATION_FAILED;
+		LOG_WRN("%s failed initialization.", get_name().c_str());
+	}
 }

@@ -69,28 +69,20 @@ bool Application::initialize_peripherals() {
 }
 
 void Application::generate_init_failure_report(buzzverse_v1_Packet& packet) {
-  LOG_INF("Generating initialization failure report...");
+	LOG_INF("Generating initialization failure report...");
 
-  packet.which_data = buzzverse_v1_Packet_status_tag;
-  auto& status_msg = packet.data.status;
+	packet.which_data = buzzverse_v1_Packet_status_tag;
+	auto& status_msg = packet.data.status;
 
-  // Assume OK by default, then mark failures.
-  for(auto sensor: m_sensors) {
-	  sensor->set_status(status_msg, buzzverse_v1_Status_ComponentState_NORMAL);
-  }
-  status_msg.lorawan_status = buzzverse_v1_Status_ComponentState_NORMAL;
+	for(auto sensor: m_sensors)
+		sensor->get_status(status_msg);
 
-	for(auto sensor: m_sensors) {
-		if (!sensor->is_ready()) {
-			LOG_WRN("%s failed initialization.", sensor->get_name().c_str());
-			sensor->set_status(status_msg, buzzverse_v1_Status_ComponentState_INITIALIZATION_FAILED);
-		}
+	if (m_lorawan.is_ready()) {
+		status_msg.lorawan_status = buzzverse_v1_Status_ComponentState_NORMAL;
+	} else {
+		LOG_WRN("LoRaWAN handler failed initialization.");
+		status_msg.lorawan_status = buzzverse_v1_Status_ComponentState_INITIALIZATION_FAILED;
 	}
-
-  if (!m_lorawan.is_ready()) {
-    LOG_WRN("LoRaWAN handler failed initialization.");
-    status_msg.lorawan_status = buzzverse_v1_Status_ComponentState_INITIALIZATION_FAILED;
-  }
 }
 
 void Application::run_cycle() {

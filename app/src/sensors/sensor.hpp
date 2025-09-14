@@ -42,7 +42,7 @@ class Sensor : public Peripheral {
    * @param status_message Reference to the status message struct
    * @param status_component_state Status state to be set for a particular sensor
    */
-  virtual void set_status(buzzverse_v1_Status& status_message, buzzverse_v1_Status_ComponentState status_component_state) const = 0;
+  virtual void get_status(buzzverse_v1_Status& status_message) const = 0;
 };
 
 #endif  // SENSOR_HPP

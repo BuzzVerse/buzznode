@@ -25,7 +25,7 @@ class BQ27441 : public Sensor {
 
   Status get_packet(buzzverse_v1_Packet& packet) const override;
 
-  void set_status(buzzverse_v1_Status& status_message, buzzverse_v1_Status_ComponentState status_component_state) const override;
+  void get_status(buzzverse_v1_Status& status_message) const override;
 
  private:
   const device* bq27441_dev;
