@@ -14,11 +14,13 @@ using Status = Sensor::Status;
 Peripheral::Status BME280::init() {
   if (!device_is_ready(bme280_dev)) {
     LOG_WRN("BME280 device not ready");
+	status = buzzverse_v1_Status_ComponentState_INITIALIZATION_FAILED;
     return Peripheral::Status::NOT_READY;
   }
 
   LOG_INF("BME280 device ready");
   ready = true;
+  status = buzzverse_v1_Status_ComponentState_NORMAL;
   return Peripheral::Status::OK;
 }
 
@@ -86,10 +88,5 @@ Status BME280::get_packet(buzzverse_v1_Packet& packet) const {
 }
 
 void BME280::get_status(buzzverse_v1_Status& status_message) const {
-	if(is_ready())
-		status_message.bme280_status = buzzverse_v1_Status_ComponentState_NORMAL;
-	else {
-		status_message.bme280_status = buzzverse_v1_Status_ComponentState_INITIALIZATION_FAILED;
-		LOG_WRN("%s failed initialization.", get_name().c_str());
-	}
+	status_message.bme280_status = status;
 }

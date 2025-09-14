@@ -30,6 +30,7 @@ class BME280 : public Sensor {
  private:
   const device* bme280_dev;
   bool ready{false};
+  buzzverse_v1_Status_ComponentState status{buzzverse_v1_Status_ComponentState_STATE_UNSPECIFIED};
 };
 
 #endif  // BME280_HPP

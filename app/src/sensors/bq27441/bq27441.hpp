@@ -30,6 +30,7 @@ class BQ27441 : public Sensor {
  private:
   const device* bq27441_dev;
   bool ready{false};
+  buzzverse_v1_Status_ComponentState status{buzzverse_v1_Status_ComponentState_STATE_UNSPECIFIED};
 };
 
 #endif  // BQ27441_HPP

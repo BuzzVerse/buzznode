@@ -14,11 +14,13 @@ using Status = Sensor::Status;
 Peripheral::Status BQ27441::init() {
   if (!device_is_ready(bq27441_dev)) {
     LOG_WRN("BQ27441 device not ready");
+	status = buzzverse_v1_Status_ComponentState_INITIALIZATION_FAILED;
     return Peripheral::Status::NOT_READY;
   }
 
   LOG_INF("BQ27441 device ready");
   ready = true;
+  status = buzzverse_v1_Status_ComponentState_NORMAL;
   return Peripheral::Status::OK;
 }
 
@@ -55,10 +57,5 @@ Status BQ27441::get_packet(buzzverse_v1_Packet& packet) const {
 }
 
 void BQ27441::get_status(buzzverse_v1_Status& status_message) const {
-	if(is_ready())
-		status_message.bq27441_status = buzzverse_v1_Status_ComponentState_NORMAL;
-	else {
-		status_message.bq27441_status = buzzverse_v1_Status_ComponentState_INITIALIZATION_FAILED;
-		LOG_WRN("%s failed initialization.", get_name().c_str());
-	}
+	status_message.bq27441_status = status;
 }

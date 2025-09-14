@@ -80,7 +80,6 @@ void Application::generate_init_failure_report(buzzverse_v1_Packet& packet) {
 	if (m_lorawan.is_ready()) {
 		status_msg.lorawan_status = buzzverse_v1_Status_ComponentState_NORMAL;
 	} else {
-		LOG_WRN("LoRaWAN handler failed initialization.");
 		status_msg.lorawan_status = buzzverse_v1_Status_ComponentState_INITIALIZATION_FAILED;
 	}
 }
