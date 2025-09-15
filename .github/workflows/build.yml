@@ -29,7 +29,7 @@ jobs:
         uses: zephyrproject-rtos/action-zephyr-setup@v1
         with:
           app-path: buzznode
-          toolchains: "arm-zephyr-eabi riscv64-zephyr-elf mips-zephyr-elf sparc-zephyr-elf arc-zephyr-elf aarch64-zephyr-elf x86_64-zephyr-elf xtensa-esp-elf"
+          toolchains: "arm-zephyr-eabi:riscv64-zephyr-elf:xtensa-esp-elf"
 
       - name: Build firmware
         working-directory: buzznode
