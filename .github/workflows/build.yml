@@ -35,18 +35,11 @@ jobs:
         run: |
           pip install west grpcio-tools nanopb protobuf
 
-      - name: Initialize West and Update Manifest
-        working-directory: buzznode
-        shell: bash
-        run: |
-          west init -l .
-          west config manifest.project-filter -- +nanopb
-          west update
-
-      - name: Setup Zephyr SDK
+      - name: Setup Zephyr Workspace and SDK
         uses: zephyrproject-rtos/action-zephyr-setup@v1
         with:
           app-path: buzznode
+          west-project-filter: "+nanopb"
           toolchains: "arm-zephyr-eabi:riscv64-zephyr-elf:x86_64-zephyr-elf:xtensa-esp-elf:mips-zephyr-elf:sparc-zephyr-elf:arc-zephyr-elf:aarch64-zephyr-elf"
 
       - name: Build firmware
