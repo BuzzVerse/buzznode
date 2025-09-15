@@ -33,7 +33,7 @@ jobs:
       - name: Install Python Dependencies
         shell: bash
         run: |
-          pip install grpcio-tools nanopb protobuf
+          pip install west grpcio-tools nanopb protobuf
 
       - name: Initialize West and Update Manifest
         working-directory: buzznode
