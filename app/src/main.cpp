@@ -1,53 +1,68 @@
-#include <etl/string.h>
 #include <zephyr/device.h>
-#include <zephyr/drivers/sensor.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
-#include <zephyr/lorawan/lorawan.h>
+#include <zephyr/sys/printk.h>
+#include <zephyr/sys/reboot.h>
 
-#include "bme280.hpp"
-#include "lorawan_handler.hpp"
+#include "Application.hpp"
+#include "peripherals/lorawan_handler/lorawan_handler.hpp"
+#include "sensors/bme280/bme280.hpp"
+#include "sensors/bq27441/bq27441.hpp"
+#include "utils/banner.hpp"
+#include "utils/sleep-manager.hpp"
 
-LOG_MODULE_REGISTER(main, LOG_LEVEL_DBG);
+LOG_MODULE_REGISTER(main_entry, LOG_LEVEL_DBG);
 
-#define DELAY K_SECONDS(10)
+#ifdef CONFIG_SLEEP_TIME_MS
+  #define APP_SLEEP_DURATION_MS CONFIG_SLEEP_TIME_MS
+#else
+  #define APP_SLEEP_DURATION_MS 10000
+#endif
 
 int main(void) {
-  const device* const bme280_dev = DEVICE_DT_GET_ANY(bosch_bme280);
+  printk("%s\n", APP_ASCII_BANNER);
+  LOG_INF("===== Buzzverse Node System Booting (Zephyr Log) =====");
 
-  BME280 bme280(bme280_dev);
-  LoRaWANHandler lorawan;
+  BME280 bme280(DEVICE_DT_GET_ANY(bosch_bme280));
+  BQ27441 bq27441(DEVICE_DT_GET_ANY(ti_bq274xx));
+  LoRaWANHandler lorawan(bq27441);
 
-  bool bme280_ready = bme280.init();
-  bool lorawan_connected = lorawan.init();
+  SleepManager* p_sleep_manager = nullptr;
 
-  if (!lorawan_connected && !bme280_ready) {
-    LOG_ERR("No devices available, stopping application");
-    return -ENODEV;
-  }
+#ifdef CONFIG_ENABLE_DEVICE_SLEEP
+  SleepManager sleep_manager_instance;
+  p_sleep_manager = &sleep_manager_instance;
+#endif
 
-  uint32_t counter = 0;
+  Application app(bme280, bq27441, lorawan, p_sleep_manager);
 
-  while (1) {
-    etl::string<64> msg;
+  if (!app.init()) {
+    LOG_ERR("Critical application initialization failed!");
 
-    if (bme280_ready) {
-      bme280.read_data(msg, counter);
-    } else {
-      char buffer[64];
-      snprintf(buffer, sizeof(buffer), "%u", counter);
-      msg = buffer;
+    buzzverse_v1_Packet packet = buzzverse_v1_Packet_init_default;
+    app.generate_init_failure_report(packet);
+
+    if (lorawan.is_ready()) {
+      LOG_ERR("Attempting to send failure status packet via LoRaWAN...");
+      lorawan.send_packet(packet);
     }
 
-    if (lorawan_connected) {
-      lorawan.send_message(msg.c_str());
-    } else {
-      LOG_INF("BME280 (not sent): %s", msg.c_str());
-    }
-
-    counter++;
-    k_sleep(DELAY);
+    LOG_ERR("Rebooting device due to critical initialization failure.");
+    sys_reboot(SYS_REBOOT_COLD);
   }
 
-  return 0;
+  app.run_cycle();
+
+#ifdef CONFIG_ENABLE_DEVICE_SLEEP
+  app.enter_low_power_mode(APP_SLEEP_DURATION_MS);
+  LOG_WRN("Execution continued after enter_low_power_mode - this is unexpected for deep sleep.");
+#else
+  LOG_INF("Device sleep not enabled. Entering polling loop.");
+  while (true) {
+    k_sleep(K_MSEC(APP_SLEEP_DURATION_MS));
+    app.run_cycle();
+  }
+#endif
+
+  return 0;  // Should not be reached
 }
