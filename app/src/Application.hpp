@@ -20,7 +20,7 @@ class Application {
    * @param sleep_manager Pointer to the SleepManager. Can be nullptr if sleep is disabled.
    */
   Application(etl::array<Sensor*, NUMBER_OF_SENSORS> sensors, LoRaWANHandler& lorawan,
-              SleepManager* sleep_manager);
+              etl::unique_ptr<SleepManager> sleep_manager);
   ~Application() = default;
 
   // Main phases of the application
@@ -52,7 +52,7 @@ class Application {
 
   etl::array<Sensor*, NUMBER_OF_SENSORS> m_sensors;
   LoRaWANHandler& m_lorawan;
-  SleepManager* m_sleep_manager;
+  etl::unique_ptr<SleepManager> m_sleep_manager;
 };
 
 #endif  // APPLICATION_HPP

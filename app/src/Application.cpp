@@ -10,8 +10,8 @@
 LOG_MODULE_REGISTER(application, CONFIG_APP_LOG_LEVEL);
 
 Application::Application(etl::array<Sensor*, NUMBER_OF_SENSORS> sensors, LoRaWANHandler& lorawan,
-                         SleepManager* sleep_manager)
-		: m_sensors(sensors), m_lorawan(lorawan), m_sleep_manager(sleep_manager) {}
+                         etl::unique_ptr<SleepManager> sleep_manager)
+		: m_sensors(sensors), m_lorawan(lorawan), m_sleep_manager(etl::move(sleep_manager)) {}
 
 bool Application::init() {
   LOG_INF("Application core initializing...");
