@@ -23,18 +23,32 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: buzznode
-          submodules: 'true'
+          submodules: 'recursive'
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: 3.11
 
-      - name: Setup Zephyr project
+      - name: Install Python Dependencies
+        shell: bash
+        run: |
+          pip install grpcio-tools nanopb protobuf
+
+      - name: Initialize West and Update Manifest
+        working-directory: buzznode
+        shell: bash
+        run: |
+          west init -l .
+          west config manifest.project-filter -- +nanopb
+          west update
+
+      - name: Setup Zephyr SDK
         uses: zephyrproject-rtos/action-zephyr-setup@v1
         with:
           app-path: buzznode
-          toolchains: "arm-zephyr-eabi:riscv64-zephyr-elf:x86_64-zephyr-elf:mips-zephyr-elf:sparc-zephyr-elf:arc-zephyr-elf:aarch64-zephyr-elf"
+          toolchains: "arm-zephyr-eabi:riscv64-zephyr-elf:x86_64-zephyr-elf:xtensa-esp-elf:mips-zephyr-elf:sparc-zephyr-elf:arc-zephyr-elf:aarch64-zephyr-elf"
+
       - name: Build firmware
         working-directory: buzznode
         shell: bash
