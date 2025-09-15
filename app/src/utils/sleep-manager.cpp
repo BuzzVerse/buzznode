@@ -31,7 +31,7 @@ void SleepManager::enter_sleep(SleepMode mode) {
     return;
   }
 
-#ifdef CONFIG_SOC_SERIES_STM32
+#ifdef CONFIG_SOC_STM32WL55XX
   LOG_WRN("STM32 Sleep not implemented yet.");
   timed_sleep();
 #elif CONFIG_SOC_ESP32S3
@@ -73,7 +73,7 @@ void SleepManager::timed_sleep() {
     return;
   }
   LOG_INF("Entering timed sleep (k_sleep) for %dms...", sleep_duration_ms);
-  k_sleep(K_MSEC(sleep_duration_ms));
+  k_msleep(sleep_duration_ms);
 }
 
 void SleepManager::set_sleep_duration(int duration_ms) {

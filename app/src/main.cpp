@@ -10,6 +10,7 @@
 #include "sensors/bq27441/bq27441.hpp"
 #include "utils/banner.hpp"
 #include "utils/sleep-manager.hpp"
+#include <stm32wlxx_ll_pwr.h>
 
 LOG_MODULE_REGISTER(main_entry, LOG_LEVEL_DBG);
 
@@ -20,6 +21,8 @@ LOG_MODULE_REGISTER(main_entry, LOG_LEVEL_DBG);
 #endif
 
 int main(void) {
+  LL_PWR_EnablePUPDCfg();
+  
   printk("%s\n", APP_ASCII_BANNER);
   LOG_INF("===== Buzzverse Node System Booting (Zephyr Log) =====");
 

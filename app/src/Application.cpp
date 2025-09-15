@@ -43,7 +43,7 @@ bool Application::initialize_peripherals() {
   LOG_DBG("Initializing: %s", m_bme280.get_name().c_str());
   if (m_bme280.init() != Peripheral::Status::OK) {
     LOG_ERR("%s initialization failed.", m_bme280.get_name().c_str());
-    all_essential_ready = false;  // BME280 is essential
+    //all_essential_ready = false;  // BME280 is essential
   } else {
     LOG_INF("%s initialized.", m_bme280.get_name().c_str());
   }
