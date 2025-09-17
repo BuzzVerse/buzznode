@@ -4,8 +4,8 @@
 #include "buzzverse/packet.pb.h"
 #include "sensor.hpp"
 
-// Number of sensor types currently supported by this application
-#define NUMBER_OF_SENSORS 2
+// Number of supported sensor types used in the sensors array
+#define NUMBER_OF_SENSORS 1
 
 class LoRaWANHandler;
 class SleepManager;

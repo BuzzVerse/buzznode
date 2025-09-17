@@ -24,6 +24,9 @@ int main(void) {
   LOG_INF("===== Buzzverse Node System Booting (Zephyr Log) =====");
 
   BME280 bme280(DEVICE_DT_GET_ANY(bosch_bme280));
+  // Array of available sensors
+  etl::array<Sensor*, NUMBER_OF_SENSORS> sensors {&bme280};
+
   BQ27441 bq27441(DEVICE_DT_GET_ANY(ti_bq274xx));
   LoRaWANHandler lorawan(bq27441);
 
@@ -32,9 +35,6 @@ int main(void) {
 #ifdef CONFIG_ENABLE_DEVICE_SLEEP
   p_sleep_manager = etl::unique_ptr<SleepManager>(new SleepManager);
 #endif
-
-  // Array of available sensors
-  etl::array<Sensor*, NUMBER_OF_SENSORS> sensors {&bme280, &bq27441};
 
   Application app(sensors, lorawan, etl::move(p_sleep_manager));
 
