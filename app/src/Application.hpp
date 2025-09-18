@@ -19,8 +19,10 @@ class Application {
    * @param lorawan Reference to the LoRaWAN handler.
    * @param sleep_manager Pointer to the SleepManager. Can be nullptr if sleep is disabled.
    */
-  Application(etl::array<Sensor*, NUMBER_OF_SENSORS> sensors, LoRaWANHandler& lorawan,
-              etl::unique_ptr<SleepManager> sleep_manager);
+  Application(
+		  etl::array<etl::unique_ptr<Sensor>, NUMBER_OF_SENSORS>& sensors,
+		  LoRaWANHandler& lorawan,
+		  etl::unique_ptr<SleepManager> sleep_manager);
   ~Application() = default;
 
   // Main phases of the application
@@ -50,7 +52,7 @@ class Application {
   bool initialize_peripherals();
   void send_lora_packet(const buzzverse_v1_Packet& packet);
 
-  etl::array<Sensor*, NUMBER_OF_SENSORS> m_sensors;
+  etl::array<etl::unique_ptr<Sensor>, NUMBER_OF_SENSORS>& m_sensors;
   LoRaWANHandler& m_lorawan;
   etl::unique_ptr<SleepManager> m_sleep_manager;
 };

@@ -25,13 +25,14 @@ int main(void) {
 
   BME280 bme280(DEVICE_DT_GET_ANY(bosch_bme280));
   // Array of available sensors
-  etl::array<Sensor*, NUMBER_OF_SENSORS> sensors {&bme280};
+  etl::array<etl::unique_ptr<Sensor>, NUMBER_OF_SENSORS> sensors {
+	etl::unique_ptr<BME280>(etl::move(&bme280)),
+  };
 
   BQ27441 bq27441(DEVICE_DT_GET_ANY(ti_bq274xx));
   LoRaWANHandler lorawan(bq27441);
 
   etl::unique_ptr<SleepManager> p_sleep_manager(nullptr);
-
 #ifdef CONFIG_ENABLE_DEVICE_SLEEP
   p_sleep_manager = etl::unique_ptr<SleepManager>(new SleepManager);
 #endif

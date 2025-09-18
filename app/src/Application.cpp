@@ -9,9 +9,14 @@
 
 LOG_MODULE_REGISTER(application, CONFIG_APP_LOG_LEVEL);
 
-Application::Application(etl::array<Sensor*, NUMBER_OF_SENSORS> sensors, LoRaWANHandler& lorawan,
-                         etl::unique_ptr<SleepManager> sleep_manager)
-		: m_sensors(sensors), m_lorawan(lorawan), m_sleep_manager(etl::move(sleep_manager)) {}
+Application::Application(
+		etl::array<etl::unique_ptr<Sensor>, NUMBER_OF_SENSORS>& sensors,
+		LoRaWANHandler& lorawan,
+		etl::unique_ptr<SleepManager> sleep_manager)
+	:
+		m_sensors(sensors),
+		m_lorawan(lorawan),
+		m_sleep_manager(etl::move(sleep_manager)) {}
 
 bool Application::init() {
   LOG_INF("Application core initializing...");
@@ -36,12 +41,14 @@ bool Application::initialize_peripherals() {
   bool all_essential_ready = true;
 
 	// Initialize sensors
-	for(auto sensor: m_sensors) {
-		LOG_DBG("Initializing: %s", sensor->get_name().c_str());
-		if (sensor->init() != Peripheral::Status::OK) {
-			LOG_ERR("%s initialization failed.", sensor->get_name().c_str());
-		} else {
-			LOG_INF("%s initialized.", sensor->get_name().c_str());
+	for(auto& sensor: m_sensors) {
+		if(sensor) {
+			LOG_DBG("Initializing: %s", sensor->get_name().c_str());
+			if (sensor->init() != Peripheral::Status::OK) {
+				LOG_ERR("%s initialization failed.", sensor->get_name().c_str());
+			} else {
+				LOG_INF("%s initialized.", sensor->get_name().c_str());
+			}
 		}
 	}
 
@@ -74,8 +81,10 @@ void Application::generate_init_failure_report(buzzverse_v1_Packet& packet) {
 	packet.which_data = buzzverse_v1_Packet_status_tag;
 	auto& status_msg = packet.data.status;
 
-	for(auto sensor: m_sensors)
-		sensor->get_status(status_msg);
+	for(const auto& sensor: m_sensors) {
+		if(sensor)
+			sensor->get_status(status_msg);
+	}
 
 	if (m_lorawan.is_ready()) {
 		status_msg.lorawan_status = buzzverse_v1_Status_ComponentState_NORMAL;
@@ -87,8 +96,8 @@ void Application::generate_init_failure_report(buzzverse_v1_Packet& packet) {
 void Application::run_cycle() {
 	LOG_INF("--- Starting Application Cycle ---");
 
-	for(auto sensor: m_sensors) {
-		if (sensor->is_ready()) {
+	for(auto& sensor: m_sensors) {
+		if (sensor && sensor->is_ready()) {
 			buzzverse_v1_Packet packet;
 			if (sensor->get_packet(packet) == Sensor::Status::OK) {
 				send_lora_packet(packet);
