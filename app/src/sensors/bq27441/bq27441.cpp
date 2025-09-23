@@ -24,10 +24,8 @@ Peripheral::Status BQ27441::init() {
   return Peripheral::Status::OK;
 }
 
-Status BQ27441::read_data(void* data_pointer) const {
+Status BQ27441::read_data(buzzverse_v1_BQ27441Data* data) const {
   struct sensor_value voltage, current, state_of_charge;
-
-	buzzverse_v1_BQ27441Data* data = static_cast<buzzverse_v1_BQ27441Data*>(data_pointer);
 
   if (sensor_sample_fetch(bq27441_dev) != 0) {
     LOG_ERR("Failed to fetch BQ27441 data");
@@ -52,7 +50,17 @@ Status BQ27441::read_data(void* data_pointer) const {
 }
 
 Status BQ27441::get_packet(buzzverse_v1_Packet& packet) const {
-	// Currently no need to have a BQ27441 packet, as battery data is sent in the Status packet instead.
+	buzzverse_v1_BQ27441Data data = buzzverse_v1_BQ27441Data_init_zero;
+
+	if(read_data(&data) != Sensor::Status::OK) {
+		return Status::READ_ERR;
+	}
+
+	packet = buzzverse_v1_Packet_init_default;
+	packet.which_data = buzzverse_v1_Packet_bq27441_tag;
+	packet.data.bq27441 = data;
+	LOG_DBG("Packet constructed with BQ27441 data.");
+
 	return Status::OK;
 }
 

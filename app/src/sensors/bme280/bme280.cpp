@@ -24,10 +24,8 @@ Peripheral::Status BME280::init() {
   return Peripheral::Status::OK;
 }
 
-Status BME280::read_data(void* data_pointer) const {
+Status BME280::read_data(buzzverse_v1_BME280Data* data) const {
   struct sensor_value temp, press, humidity;
-
-	buzzverse_v1_BME280Data* data = static_cast<buzzverse_v1_BME280Data*>(data_pointer);
 
   if (nullptr == data) {
     LOG_ERR("Invalid data pointer");
@@ -82,7 +80,7 @@ Status BME280::get_packet(buzzverse_v1_Packet& packet) const {
 	packet = buzzverse_v1_Packet_init_default;
 	packet.which_data = buzzverse_v1_Packet_bme280_tag;
 	packet.data.bme280 = bme_data;
-	LOG_DBG("Application packet constructed with BME280 data.");
+	LOG_DBG("Packet constructed with BME280 data.");
 
 	return Status::OK;
 }

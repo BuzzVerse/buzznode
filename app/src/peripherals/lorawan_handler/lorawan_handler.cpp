@@ -63,14 +63,14 @@ uint8_t LoRaWANHandler::battery_level_callback() {
     return 255;
   }
 
-  buzzverse_v1_BQ27441Data battery_data = buzzverse_v1_BQ27441Data_init_zero;
-  auto status = battery_sensor->read_data(&battery_data);
+  buzzverse_v1_Packet battery_packet;
+  auto status = battery_sensor->get_packet(battery_packet);
   if (Sensor::Status::OK != status) {
     LOG_ERR("Battery sensor read failed: %d", static_cast<int>(status));
     return 255;
   }
 
-  uint8_t soc = battery_data.state_of_charge;
+  uint8_t soc = battery_packet.data.bq27441.state_of_charge;
 
   if (0 == soc) {
     LOG_WRN("Battery level is 0, possibly external power source.");

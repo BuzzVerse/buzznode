@@ -21,8 +21,6 @@ class BME280 : public Sensor {
     return "BME280";
   }
 
-  Status read_data(void* data_pointer) const override;
-
   Status get_packet(buzzverse_v1_Packet& packet) const override;
 
   void get_status(buzzverse_v1_Status& status_message) const override;
@@ -31,6 +29,17 @@ class BME280 : public Sensor {
   const device* bme280_dev;
   bool ready{false};
   buzzverse_v1_Status_ComponentState status{buzzverse_v1_Status_ComponentState_STATE_UNSPECIFIED};
+
+  /**
+   * @brief Read data from the sensor
+   *
+   * @param data Pointer to the BME280 data structure to populate
+   * @return Status
+   * @retval OK if the data is successfully read
+   * @retval READ_ERR if the sensor read fails
+   */
+  Status read_data(buzzverse_v1_BME280Data* data) const;
+
 };
 
 #endif  // BME280_HPP

@@ -17,16 +17,6 @@ class Sensor : public Peripheral {
   };
 
   /**
-   * @brief Read data from the sensor
-   *
-   * @param data_pointer Pointer to the data structure to populate
-   * @return Status
-   * @retval OK if the data is successfully read
-   * @retval READ_ERR if the sensor read fails
-   */
-  virtual Status read_data(void* data_pointer) const = 0;
-
-  /**
    * @brief Read data from the sensor and get a packet containing the readout
    *
    * @param packet Reference to a packet to populate
