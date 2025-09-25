@@ -9,16 +9,18 @@ LOG_MODULE_REGISTER(bme280, LOG_LEVEL_DBG);
 
 BME280::BME280(const device* dev) : bme280_dev(dev) {}
 
-using Status = Sensor<buzzverse_v1_BME280Data>::Status;
+using Status = Sensor::Status;
 
 Peripheral::Status BME280::init() {
   if (!device_is_ready(bme280_dev)) {
     LOG_WRN("BME280 device not ready");
+	status = buzzverse_v1_Status_ComponentState_INITIALIZATION_FAILED;
     return Peripheral::Status::NOT_READY;
   }
 
   LOG_INF("BME280 device ready");
   ready = true;
+  status = buzzverse_v1_Status_ComponentState_NORMAL;
   return Peripheral::Status::OK;
 }
 
@@ -53,9 +55,36 @@ Status BME280::read_data(buzzverse_v1_BME280Data* data) const {
   // Convert humidity to whole percentage (0-100%)
   data->humidity = static_cast<uint8_t>(humidity.val1);
 
-  LOG_DBG("Temperature: %d C", data->temperature);
-  LOG_DBG("Pressure (Difference from 1000 hPa): %d hPa", data->pressure);
-  LOG_DBG("Humidity: %d %%", data->humidity);
+  LOG_INF("Temperature: %d C", data->temperature);
+  LOG_INF("Pressure (Difference from 1000 hPa): %d hPa", data->pressure);
+  LOG_INF("Humidity: %d %%", data->humidity);
 
   return Status::OK;
+}
+
+Status BME280::get_packet(buzzverse_v1_Packet& packet) const {
+	buzzverse_v1_BME280Data bme_data = buzzverse_v1_BME280Data_init_zero;
+
+	if(read_data(&bme_data) != Sensor::Status::OK) {
+		return Status::READ_ERR;
+	}
+
+	bool bme_has_valid_data =
+		!(bme_data.temperature == 0 && bme_data.pressure == 0 && bme_data.humidity == 0);
+
+	if (!bme_has_valid_data) {
+		LOG_WRN("No valid BME280 data to construct an application packet.");
+		return Status::READ_ERR;
+	}
+
+	packet = buzzverse_v1_Packet_init_default;
+	packet.which_data = buzzverse_v1_Packet_bme280_tag;
+	packet.data.bme280 = bme_data;
+	LOG_DBG("Packet constructed with BME280 data.");
+
+	return Status::OK;
+}
+
+void BME280::get_status(buzzverse_v1_Status& status_message) const {
+	status_message.bme280_status = status;
 }

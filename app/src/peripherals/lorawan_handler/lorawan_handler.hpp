@@ -2,6 +2,7 @@
 #define LORAWAN_HANDLER_HPP
 
 #include <etl/array.h>
+#include <etl/memory.h>
 #include <etl/string.h>
 
 #include "buzzverse/bq27441.pb.h"
@@ -11,7 +12,7 @@
 
 class LoRaWANHandler : public Peripheral {
  public:
-  explicit LoRaWANHandler(Sensor<buzzverse_v1_BQ27441Data>& battery_sensor);
+  explicit LoRaWANHandler(Sensor& battery_sensor);
 
   static constexpr uint8_t LORAWAN_PORT = 2;
 
@@ -54,7 +55,7 @@ class LoRaWANHandler : public Peripheral {
   etl::array<uint8_t, KEY_SIZE> app_skey;
   etl::array<uint8_t, KEY_SIZE> nwk_skey;
 
-  static Sensor<buzzverse_v1_BQ27441Data>* battery_sensor;
+  static etl::unique_ptr<Sensor> battery_sensor;
   static uint8_t battery_level_callback();
 };
 

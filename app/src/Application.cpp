@@ -3,19 +3,20 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/sys/reboot.h>
 
-#include "buzzverse/bme280.pb.h"
-#include "buzzverse/bq27441.pb.h"
 #include "buzzverse/packet.pb.h"
 #include "peripherals/lorawan_handler/lorawan_handler.hpp"
-#include "sensors/bme280/bme280.hpp"
-#include "sensors/bq27441/bq27441.hpp"
 #include "utils/sleep-manager.hpp"
 
 LOG_MODULE_REGISTER(application, CONFIG_APP_LOG_LEVEL);
 
-Application::Application(BME280& bme280, BQ27441& bq27441, LoRaWANHandler& lorawan,
-                         SleepManager* sleep_manager)
-    : m_bme280(bme280), m_bq27441(bq27441), m_lorawan(lorawan), m_sleep_manager(sleep_manager) {}
+Application::Application(
+		etl::array<etl::unique_ptr<Sensor>, NUMBER_OF_SENSORS>& sensors,
+		LoRaWANHandler& lorawan,
+		etl::unique_ptr<SleepManager> sleep_manager)
+	:
+		m_sensors(sensors),
+		m_lorawan(lorawan),
+		m_sleep_manager(etl::move(sleep_manager)) {}
 
 bool Application::init() {
   LOG_INF("Application core initializing...");
@@ -39,22 +40,19 @@ bool Application::initialize_peripherals() {
   LOG_DBG("Initializing all application peripherals...");
   bool all_essential_ready = true;
 
-  // --- Initialize each peripheral directly ---
-  LOG_DBG("Initializing: %s", m_bme280.get_name().c_str());
-  if (m_bme280.init() != Peripheral::Status::OK) {
-    LOG_ERR("%s initialization failed.", m_bme280.get_name().c_str());
-    all_essential_ready = false;  // BME280 is essential
-  } else {
-    LOG_INF("%s initialized.", m_bme280.get_name().c_str());
-  }
+	// Initialize sensors
+	for(auto& sensor: m_sensors) {
+		if(sensor) {
+			LOG_DBG("Initializing: %s", sensor->get_name().c_str());
+			if (sensor->init() != Peripheral::Status::OK) {
+				LOG_ERR("%s initialization failed.", sensor->get_name().c_str());
+			} else {
+				LOG_INF("%s initialized.", sensor->get_name().c_str());
+			}
+		}
+	}
 
-  LOG_DBG("Initializing: %s", m_bq27441.get_name().c_str());
-  if (m_bq27441.init() != Peripheral::Status::OK) {
-    LOG_ERR("%s initialization failed.", m_bq27441.get_name().c_str());
-  } else {
-    LOG_INF("%s initialized.", m_bq27441.get_name().c_str());
-  }
-
+	// Initialize the LoRaWAN manager
   LOG_DBG("Initializing: %s", m_lorawan.get_name().c_str());
   if (m_lorawan.init() != Peripheral::Status::OK) {
     LOG_ERR("%s initialization failed.", m_lorawan.get_name().c_str());
@@ -78,42 +76,40 @@ bool Application::initialize_peripherals() {
 }
 
 void Application::generate_init_failure_report(buzzverse_v1_Packet& packet) {
-  LOG_INF("Generating initialization failure report...");
+	LOG_INF("Generating initialization failure report...");
 
-  packet.which_data = buzzverse_v1_Packet_status_tag;
-  auto& status_msg = packet.data.status;
+	packet.which_data = buzzverse_v1_Packet_status_tag;
+	auto& status_msg = packet.data.status;
 
-  // Assume OK by default, then mark failures.
-  status_msg.bme280_status = buzzverse_v1_Status_ComponentState_NORMAL;
-  status_msg.bq27441_status = buzzverse_v1_Status_ComponentState_NORMAL;
-  status_msg.lorawan_status = buzzverse_v1_Status_ComponentState_NORMAL;
+	for(const auto& sensor: m_sensors) {
+		if(sensor)
+			sensor->get_status(status_msg);
+	}
 
-  // Check the readiness of each peripheral managed by the Application class
-  if (!m_bme280.is_ready()) {
-    LOG_WRN("BME280 failed initialization.");
-    status_msg.bme280_status = buzzverse_v1_Status_ComponentState_INITIALIZATION_FAILED;
-  }
-
-  if (!m_bq27441.is_ready()) {
-    LOG_WRN("BQ27441 failed initialization.");
-    status_msg.bq27441_status = buzzverse_v1_Status_ComponentState_INITIALIZATION_FAILED;
-  }
-
-  if (!m_lorawan.is_ready()) {
-    LOG_WRN("LoRaWAN handler failed initialization.");
-    status_msg.lorawan_status = buzzverse_v1_Status_ComponentState_INITIALIZATION_FAILED;
-  }
+	if (m_lorawan.is_ready()) {
+		status_msg.lorawan_status = buzzverse_v1_Status_ComponentState_NORMAL;
+	} else {
+		status_msg.lorawan_status = buzzverse_v1_Status_ComponentState_INITIALIZATION_FAILED;
+	}
 }
 
 void Application::run_cycle() {
-  LOG_INF("--- Starting Application Cycle ---");
+	LOG_INF("--- Starting Application Cycle ---");
 
-  buzzverse_v1_BME280Data bme280_data = buzzverse_v1_BME280Data_init_zero;
+	for(auto& sensor: m_sensors) {
+		if (sensor && sensor->is_ready()) {
+			buzzverse_v1_Packet packet;
+			if (sensor->get_packet(packet) == Sensor::Status::OK) {
+				send_lora_packet(packet);
+			} else {
+				LOG_ERR("Failed to get %s packet", sensor->get_name().c_str());
+			}
+		} else {
+			LOG_ERR("%s not ready for reading.", sensor->get_name().c_str());
+		}
+	}
 
-  read_sensor_data(bme280_data);
-  send_lora_packet(bme280_data);
-
-  LOG_INF("--- Application Cycle Complete ---");
+	LOG_INF("--- Application Cycle Complete ---");
 }
 
 void Application::enter_low_power_mode(int sleep_duration_ms) {
@@ -134,54 +130,9 @@ void Application::enter_low_power_mode(int sleep_duration_ms) {
   LOG_ERR("!!! CRITICAL: Execution continued after deep sleep call. Deep sleep failed. !!!");
   sys_reboot(SYS_REBOOT_COLD);
 }
-void Application::read_sensor_data(buzzverse_v1_BME280Data& bme_data) {
-  LOG_INF("Reading sensor data...");
-  bool bme_read_ok = false;
 
-  if (m_bme280.is_ready()) {
-    if (m_bme280.read_data(&bme_data) == Sensor<buzzverse_v1_BME280Data>::Status::OK) {
-      LOG_INF("BME280: Temp: %d, Press: %d, Hum: %u", bme_data.temperature, bme_data.pressure,
-              bme_data.humidity);
-      bme_read_ok = true;
-    } else {
-      LOG_ERR("Failed to read BME280 data.");
-    }
-  } else {
-    LOG_ERR("BME280 not ready for reading.");
-  }
-
-  if (m_bq27441.is_ready()) {
-    buzzverse_v1_BQ27441Data local_bq_data = buzzverse_v1_BQ27441Data_init_zero;
-    if (m_bq27441.read_data(&local_bq_data) == Sensor<buzzverse_v1_BQ27441Data>::Status::OK) {
-      LOG_INF("BQ27441 (local log): V(mV):%u, I(mA):%d, SoC:%u%%", local_bq_data.voltage_mv,
-              local_bq_data.current_ma, local_bq_data.state_of_charge);
-    } else {
-      LOG_WRN("Failed to read BQ27441 data for local logging.");
-    }
-  } else {
-    LOG_WRN("BQ27441 not ready for local logging.");
-  }
-
-  if (!bme_read_ok) {
-    LOG_WRN("Primary sensor data (BME280) could not be read for the application packet.");
-  }
-}
-
-void Application::send_lora_packet(const buzzverse_v1_BME280Data& bme_data) {
+void Application::send_lora_packet(const buzzverse_v1_Packet& packet) {
   LOG_INF("Preparing LoRaWAN application packet...");
-
-  bool bme_has_valid_data =
-    !(bme_data.temperature == 0 && bme_data.pressure == 0 && bme_data.humidity == 0);
-
-  if (!bme_has_valid_data) {
-    LOG_WRN("No valid BME280 data to construct an application packet.");
-    return;
-  }
-
-  buzzverse_v1_Packet packet = buzzverse_v1_Packet_init_default;
-  packet.which_data = buzzverse_v1_Packet_bme280_tag;
-  packet.data.bme280 = bme_data;
-  LOG_DBG("Application packet constructed with BME280 data.");
 
   if (m_lorawan.is_ready()) {
     LOG_INF("Attempting to send application packet via LoRaWAN...");

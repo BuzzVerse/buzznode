@@ -24,17 +24,20 @@ int main(void) {
   LOG_INF("===== Buzzverse Node System Booting (Zephyr Log) =====");
 
   BME280 bme280(DEVICE_DT_GET_ANY(bosch_bme280));
+  // Array of available sensors
+  etl::array<etl::unique_ptr<Sensor>, NUMBER_OF_SENSORS> sensors {
+	etl::unique_ptr<BME280>(etl::move(&bme280)),
+  };
+
   BQ27441 bq27441(DEVICE_DT_GET_ANY(ti_bq274xx));
   LoRaWANHandler lorawan(bq27441);
 
-  SleepManager* p_sleep_manager = nullptr;
-
+  etl::unique_ptr<SleepManager> p_sleep_manager(nullptr);
 #ifdef CONFIG_ENABLE_DEVICE_SLEEP
-  SleepManager sleep_manager_instance;
-  p_sleep_manager = &sleep_manager_instance;
+  p_sleep_manager = etl::unique_ptr<SleepManager>(new SleepManager);
 #endif
 
-  Application app(bme280, bq27441, lorawan, p_sleep_manager);
+  Application app(sensors, lorawan, etl::move(p_sleep_manager));
 
   if (!app.init()) {
     LOG_ERR("Critical application initialization failed!");

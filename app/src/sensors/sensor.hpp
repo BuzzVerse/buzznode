@@ -2,8 +2,8 @@
 #define SENSOR_HPP
 
 #include "peripheral.hpp"
+#include "buzzverse/packet.pb.h"
 
-template <typename DataType>
 class Sensor : public Peripheral {
  public:
   virtual ~Sensor() = default;
@@ -17,14 +17,21 @@ class Sensor : public Peripheral {
   };
 
   /**
-   * @brief Read data from the sensor
+   * @brief Read data from the sensor and get a packet containing the readout
    *
-   * @param data Pointer to the data structure to populate
+   * @param packet Reference to a packet to populate
    * @return Status
-   * @retval OK if the data is successfully read
+   * @retval OK if the data is successfully read and packet is constructed
    * @retval READ_ERR if the sensor read fails
    */
-  virtual Status read_data(DataType* data) const = 0;
+  virtual Status get_packet(buzzverse_v1_Packet& packet) const = 0;
+
+  /**
+   * @brief Gets sensor status value and assigns it to a field in the status message struct corresponding to the correct sensor
+   *
+   * @param status_message Reference to the status message struct
+   */
+  virtual void get_status(buzzverse_v1_Status& status_message) const = 0;
 };
 
 #endif  // SENSOR_HPP

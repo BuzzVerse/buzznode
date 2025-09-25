@@ -9,16 +9,18 @@ LOG_MODULE_REGISTER(bq27441, LOG_LEVEL_DBG);
 
 BQ27441::BQ27441(const device* dev) : bq27441_dev(dev) {}
 
-using Status = Sensor<buzzverse_v1_BQ27441Data>::Status;
+using Status = Sensor::Status;
 
 Peripheral::Status BQ27441::init() {
   if (!device_is_ready(bq27441_dev)) {
     LOG_WRN("BQ27441 device not ready");
+	status = buzzverse_v1_Status_ComponentState_INITIALIZATION_FAILED;
     return Peripheral::Status::NOT_READY;
   }
 
   LOG_INF("BQ27441 device ready");
   ready = true;
+  status = buzzverse_v1_Status_ComponentState_NORMAL;
   return Peripheral::Status::OK;
 }
 
@@ -40,9 +42,28 @@ Status BQ27441::read_data(buzzverse_v1_BQ27441Data* data) const {
   data->current_ma = (current.val1 * 1000) + (current.val2 / 1000);  // Convert A to mA
   data->state_of_charge = state_of_charge.val1;                      // Percentage
 
-  LOG_DBG("Voltage: %d mV", data->voltage_mv);
-  LOG_DBG("Current: %d mA", data->current_ma);
-  LOG_DBG("State of charge: %d%%", data->state_of_charge);
+  LOG_INF("Voltage: %d mV", data->voltage_mv);
+  LOG_INF("Current: %d mA", data->current_ma);
+  LOG_INF("State of charge: %d%%", data->state_of_charge);
 
   return Status::OK;
+}
+
+Status BQ27441::get_packet(buzzverse_v1_Packet& packet) const {
+	buzzverse_v1_BQ27441Data data = buzzverse_v1_BQ27441Data_init_zero;
+
+	if(read_data(&data) != Sensor::Status::OK) {
+		return Status::READ_ERR;
+	}
+
+	packet = buzzverse_v1_Packet_init_default;
+	packet.which_data = buzzverse_v1_Packet_bq27441_tag;
+	packet.data.bq27441 = data;
+	LOG_DBG("Packet constructed with BQ27441 data.");
+
+	return Status::OK;
+}
+
+void BQ27441::get_status(buzzverse_v1_Status& status_message) const {
+	status_message.bq27441_status = status;
 }

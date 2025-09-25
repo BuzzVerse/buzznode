@@ -1,6 +1,5 @@
 #include "lorawan_handler.hpp"
 
-#include <etl/array.h>
 #include <zephyr/device.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/lorawan/lorawan.h>
@@ -10,10 +9,10 @@
 
 LOG_MODULE_REGISTER(lorawan_handler, LOG_LEVEL_DBG);
 
-Sensor<buzzverse_v1_BQ27441Data>* LoRaWANHandler::battery_sensor = nullptr;
+etl::unique_ptr<Sensor> LoRaWANHandler::battery_sensor(nullptr);
 
-LoRaWANHandler::LoRaWANHandler(Sensor<buzzverse_v1_BQ27441Data>& battery_sensor) {
-  LoRaWANHandler::battery_sensor = &battery_sensor;
+LoRaWANHandler::LoRaWANHandler(Sensor& battery_sensor) {
+  LoRaWANHandler::battery_sensor = etl::unique_ptr<Sensor>(etl::move(&battery_sensor));
 
 #if defined(CONFIG_LORAWAN_JOIN_OTAA)
   const char* dev_eui_str = CONFIG_LORAWAN_DEV_EUI;
@@ -54,7 +53,7 @@ LoRaWANHandler::LoRaWANHandler(Sensor<buzzverse_v1_BQ27441Data>& battery_sensor)
 }
 
 uint8_t LoRaWANHandler::battery_level_callback() {
-  if (nullptr == battery_sensor) {
+  if (!battery_sensor) {
     LOG_ERR("Battery sensor is not set. Returning 255.");
     return 255;
   }
@@ -64,14 +63,14 @@ uint8_t LoRaWANHandler::battery_level_callback() {
     return 255;
   }
 
-  buzzverse_v1_BQ27441Data battery_data = buzzverse_v1_BQ27441Data_init_zero;
-  auto status = battery_sensor->read_data(&battery_data);
-  if (Sensor<buzzverse_v1_BQ27441Data>::Status::OK != status) {
+  buzzverse_v1_Packet battery_packet;
+  auto status = battery_sensor->get_packet(battery_packet);
+  if (Sensor::Status::OK != status) {
     LOG_ERR("Battery sensor read failed: %d", static_cast<int>(status));
     return 255;
   }
 
-  uint8_t soc = battery_data.state_of_charge;
+  uint8_t soc = battery_packet.data.bq27441.state_of_charge;
 
   if (0 == soc) {
     LOG_WRN("Battery level is 0, possibly external power source.");

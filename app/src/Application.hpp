@@ -1,11 +1,12 @@
 #ifndef APPLICATION_HPP
 #define APPLICATION_HPP
 
-#include "buzzverse/bme280.pb.h"
 #include "buzzverse/packet.pb.h"
+#include "sensor.hpp"
 
-class BME280;
-class BQ27441;
+// Number of supported sensor types used in the sensors array
+#define NUMBER_OF_SENSORS 1
+
 class LoRaWANHandler;
 class SleepManager;
 
@@ -14,13 +15,14 @@ class Application {
   /**
    * @brief Construct a new Application object.
    *
-   * @param bme280 Reference to the BME280 sensor.
-   * @param bq27441 Reference to the BQ27441 fuel gauge.
+   * @param sensors Array of pointers to available sensors.
    * @param lorawan Reference to the LoRaWAN handler.
    * @param sleep_manager Pointer to the SleepManager. Can be nullptr if sleep is disabled.
    */
-  Application(BME280& bme280, BQ27441& bq27441, LoRaWANHandler& lorawan,
-              SleepManager* sleep_manager);
+  Application(
+		  etl::array<etl::unique_ptr<Sensor>, NUMBER_OF_SENSORS>& sensors,
+		  LoRaWANHandler& lorawan,
+		  etl::unique_ptr<SleepManager> sleep_manager);
   ~Application() = default;
 
   // Main phases of the application
@@ -48,13 +50,11 @@ class Application {
  private:
   // Internal helper methods
   bool initialize_peripherals();
-  void read_sensor_data(buzzverse_v1_BME280Data& bme_data);
-  void send_lora_packet(const buzzverse_v1_BME280Data& bme_data);
+  void send_lora_packet(const buzzverse_v1_Packet& packet);
 
-  BME280& m_bme280;
-  BQ27441& m_bq27441;
+  etl::array<etl::unique_ptr<Sensor>, NUMBER_OF_SENSORS>& m_sensors;
   LoRaWANHandler& m_lorawan;
-  SleepManager* m_sleep_manager;
+  etl::unique_ptr<SleepManager> m_sleep_manager;
 };
 
 #endif  // APPLICATION_HPP
