@@ -33,12 +33,12 @@ class BME280 : public Sensor {
   /**
    * @brief Read data from the sensor
    *
-   * @param data Pointer to the BME280 data structure to populate
+   * @param data BME280 data structure to populate
    * @return Status
    * @retval OK if the data is successfully read
    * @retval READ_ERR if the sensor read fails
    */
-  Status read_data(buzzverse_v1_BME280Data* data) const;
+  Status read_data(buzzverse_v1_BME280Data& data) const;
 
   /**
    * @brief Check if values read from the sensor are valid, i.e. fit within operating ranges specified in BME280 datasheet

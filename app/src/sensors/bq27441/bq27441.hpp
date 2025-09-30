@@ -33,12 +33,12 @@ class BQ27441 : public Sensor {
   /**
    * @brief Read data from the sensor
    *
-   * @param data Pointer to the BQ27441 data structure to populate
+   * @param data BQ27441 data structure to populate
    * @return Status
    * @retval OK if the data is successfully read
    * @retval READ_ERR if the sensor read fails
    */
-  Status read_data(buzzverse_v1_BQ27441Data* data) const;
+  Status read_data(buzzverse_v1_BQ27441Data& data) const;
 };
 
 #endif  // BQ27441_HPP

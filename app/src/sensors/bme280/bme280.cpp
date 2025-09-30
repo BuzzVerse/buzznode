@@ -24,13 +24,8 @@ Peripheral::Status BME280::init() {
   return Peripheral::Status::OK;
 }
 
-Status BME280::read_data(buzzverse_v1_BME280Data* data) const {
+Status BME280::read_data(buzzverse_v1_BME280Data& data) const {
   struct sensor_value temp, press, humidity;
-
-  if (nullptr == data) {
-    LOG_ERR("Invalid data pointer");
-    return Status::READ_ERR;
-  }
 
   if (sensor_sample_fetch(bme280_dev) != 0) {
     LOG_ERR("Failed to fetch BME280 data");
@@ -42,7 +37,7 @@ Status BME280::read_data(buzzverse_v1_BME280Data* data) const {
   sensor_channel_get(bme280_dev, SENSOR_CHAN_HUMIDITY, &humidity);
 
   // Convert temperature to whole degrees (-128 to 127)
-  data->temperature = static_cast<int8_t>(temp.val1);
+  data.temperature = static_cast<int8_t>(temp.val1);
 
   double total_pressure_kPa = static_cast<double>(press.val1) + static_cast<double>(press.val2) / 1000000.0;
   double pressure_hPa = total_pressure_kPa * 10.0;
@@ -50,14 +45,14 @@ Status BME280::read_data(buzzverse_v1_BME280Data* data) const {
   int32_t rounded_pressure_hPa = static_cast<int32_t>(round(pressure_hPa));
 
   // Convert pressure as difference from 1000 hPa (-128 to 127)
-  data->pressure = static_cast<int8_t>(rounded_pressure_hPa - 1000);
+  data.pressure = static_cast<int8_t>(rounded_pressure_hPa - 1000);
 
   // Convert humidity to whole percentage (0-100%)
-  data->humidity = static_cast<uint8_t>(humidity.val1);
+  data.humidity = static_cast<uint8_t>(humidity.val1);
 
-  LOG_INF("Temperature: %d C", data->temperature);
-  LOG_INF("Pressure (Difference from 1000 hPa): %d hPa", data->pressure);
-  LOG_INF("Humidity: %d %%", data->humidity);
+  LOG_INF("Temperature: %d C", data.temperature);
+  LOG_INF("Pressure (Difference from 1000 hPa): %d hPa", data.pressure);
+  LOG_INF("Humidity: %d %%", data.humidity);
 
   return Status::OK;
 }
@@ -65,7 +60,7 @@ Status BME280::read_data(buzzverse_v1_BME280Data* data) const {
 Status BME280::get_packet(buzzverse_v1_Packet& packet) const {
 	buzzverse_v1_BME280Data bme_data = buzzverse_v1_BME280Data_init_zero;
 
-	if(read_data(&bme_data) != Sensor::Status::OK) {
+	if(read_data(bme_data) != Sensor::Status::OK) {
 		return Status::READ_ERR;
 	}
 
