@@ -40,6 +40,14 @@ class BME280 : public Sensor {
    */
   Status read_data(buzzverse_v1_BME280Data* data) const;
 
+  /**
+   * @brief Check if values read from the sensor are valid, i.e. fit within operating ranges specified in BME280 datasheet
+   *
+   * @param data Struct containing sensor data to be validated
+   * @retval true if data is valid
+   * @retval false if data is invalid
+   */
+  bool validate_data(buzzverse_v1_BME280Data& data) const;
 };
 
 #endif  // BME280_HPP

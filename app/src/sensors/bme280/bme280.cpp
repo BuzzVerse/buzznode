@@ -69,10 +69,7 @@ Status BME280::get_packet(buzzverse_v1_Packet& packet) const {
 		return Status::READ_ERR;
 	}
 
-	bool bme_has_valid_data =
-		!(bme_data.temperature == 0 && bme_data.pressure == 0 && bme_data.humidity == 0);
-
-	if (!bme_has_valid_data) {
+	if (!validate_data(bme_data)) {
 		LOG_WRN("No valid BME280 data to construct an application packet.");
 		return Status::READ_ERR;
 	}
@@ -87,4 +84,19 @@ Status BME280::get_packet(buzzverse_v1_Packet& packet) const {
 
 void BME280::get_status(buzzverse_v1_Status& status_message) const {
 	status_message.bme280_status = status;
+}
+
+bool BME280::validate_data(buzzverse_v1_BME280Data& data) const {
+	if(
+		(data.temperature >= -40 && data.temperature <= 85) &&
+		// We return the difference from 1000 hPa, and the BME operating range for pressure is <300, 1100> hPa.
+		// Note that the pressure value is saved as a 8-bit signed integer,
+		// so in reality we don't expect values outside <-128, 127> = <872, 1127> hPa.
+		// This function however stays true to the operating ranges according to the BME280 datasheet.
+		(data.pressure >= -700 && data.pressure <= 100) &&
+		(data.humidity >= 0 && data.humidity <= 100)
+	  )
+		return true;
+	else
+		return false;
 }
