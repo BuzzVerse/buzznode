@@ -29,6 +29,7 @@ int main(void) {
   printk("%s\n", APP_ASCII_BANNER);
   LOG_INF("===== Buzzverse Node System Booting (Zephyr Log) =====");
 
+  BME280 bme280(DEVICE_DT_GET_ANY(bosch_bme280));
   SEN0308 sen0308(&soil_sensor_adc_spec);
 
   // Array of available sensors
