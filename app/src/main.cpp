@@ -29,19 +29,15 @@ int main(void) {
   printk("%s\n", APP_ASCII_BANNER);
   LOG_INF("===== Buzzverse Node System Booting (Zephyr Log) =====");
 
-  BME280 bme280(DEVICE_DT_GET_ANY(bosch_bme280));
+  SEN0308 sen0308(&soil_sensor_adc_spec);
+
   // Array of available sensors
   etl::array<etl::unique_ptr<Sensor>, NUMBER_OF_SENSORS> sensors {
-	etl::unique_ptr<BME280>(etl::move(&bme280)),
+	etl::unique_ptr<SEN0308>(etl::move(&sen0308)),
   };
 
   BQ27441 bq27441(DEVICE_DT_GET_ANY(ti_bq274xx));
-  SEN0308 sen0308(&soil_sensor_adc_spec);
   LoRaWANHandler lorawan(bq27441);
-  // Construct the sensor object, passing only the ADC spec.
-  SEN0308 soil_sensor(&soil_adc_spec);
-  const device* adc_dev = DEVICE_DT_GET(DT_NODELABEL(adc));
-  soil_sensor.init();
 
   etl::unique_ptr<SleepManager> p_sleep_manager(nullptr);
 #ifdef CONFIG_ENABLE_DEVICE_SLEEP
@@ -50,13 +46,6 @@ int main(void) {
 
   Application app(sensors, lorawan, etl::move(p_sleep_manager));
   
-  if (soil_sensor.init() != Peripheral::Status::OK) {
-      printk("ERROR: SEN0308 initialization failed. Halting.\n");
-      while (true) { k_sleep(K_SECONDS(1)); }
-  } else {
-      printk("SEN0308 initialized successfully.\n");
-  }
-
   if (!app.init()) {
     LOG_ERR("Critical application initialization failed!");
 

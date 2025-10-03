@@ -10,10 +10,11 @@ LOG_MODULE_REGISTER(sen0308, LOG_LEVEL_DBG);
 SEN0308::SEN0308(const struct adc_dt_spec* adc_spec)
     : m_adc_spec(adc_spec) {}
     
-using Status = Sensor<buzzverse_v1_SEN0308Data>::Status;
+using Status = Sensor::Status;
 
 Peripheral::Status SEN0308::init() {
     if (!m_adc_spec || !device_is_ready(m_adc_spec->dev)) {
+	    status = buzzverse_v1_Status_ComponentState_INITIALIZATION_FAILED;
         LOG_WRN("SEN0308: ADC device not ready or spec is invalid");
         return Peripheral::Status::NOT_READY;
     }
@@ -21,20 +22,18 @@ Peripheral::Status SEN0308::init() {
     int err = adc_channel_setup_dt(m_adc_spec);
     if (err != 0) {
         LOG_ERR("SEN0308: Failed to setup ADC channel %d (err %d)", m_adc_spec->channel_id, err);
+        status = buzzverse_v1_Status_ComponentState_INITIALIZATION_FAILED;
         return Peripheral::Status::INIT_ERR;
     }
 
     LOG_INF("SEN0308: ADC device ready, channel %d configured via DT", m_adc_spec->channel_id);
+	status = buzzverse_v1_Status_ComponentState_NORMAL;
+
     ready = true;
     return Peripheral::Status::OK;
 }
 
-Status SEN0308::read_data(buzzverse_v1_SEN0308Data* data) const {
-    if (nullptr == data) {
-        LOG_ERR("SEN0308: Invalid data pointer");
-        return Status::READ_ERR;
-    }
-
+Status SEN0308::read_data(buzzverse_v1_SEN0308Data& data) const {
     uint16_t sample_buffer = 0;
     struct adc_sequence sequence = {0};
     int ret = adc_sequence_init_dt(m_adc_spec, &sequence);
@@ -73,14 +72,32 @@ Status SEN0308::read_data(buzzverse_v1_SEN0308Data* data) const {
 
     // Clamp the percentage to the range [0, 100]
     if (percent_int < 0) {
-        data->percent = 0;
+        data.percent = 0;
     } else if (percent_int > 100) {
-        data->percent = 100;
+        data.percent = 100;
     } else {
-        data->percent = percent_int;
+        data.percent = percent_int;
     }
     
-    LOG_DBG("SEN0308: Raw ADC: %u, Voltage: %u mV, Percent: %u%%", sample_buffer, millivolts, data->percent);
+    LOG_DBG("SEN0308: Raw ADC: %u, Voltage: %u mV, Percent: %u%%", sample_buffer, millivolts, data.percent);
 
     return Status::OK;
+}
+
+Status SEN0308::get_packet(buzzverse_v1_Packet& packet) const {
+    buzzverse_v1_SEN0308Data sen0308_data = buzzverse_v1_SEN0308Data_init_zero;
+
+    if(read_data(sen0308_data) != Sensor::Status::OK) {
+        return Status::READ_ERR;
+    }
+
+    packet = buzzverse_v1_Packet_init_default;
+    packet.which_data = buzzverse_v1_Packet_sen0308_tag;
+    packet.data.sen0308 = sen0308_data;
+    LOG_DBG("Packet constructed with SEN0308 data.");
+    return Status::OK;
+}
+
+void SEN0308::get_status(buzzverse_v1_Status& status_message) const {
+	status_message.sen0308_status = status;
 }

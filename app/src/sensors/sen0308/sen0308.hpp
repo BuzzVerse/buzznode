@@ -10,7 +10,7 @@
 #include "../peripherals/peripheral.hpp"
 #include "../sensor.hpp"
 
-class SEN0308 : public Sensor<buzzverse_v1_SEN0308Data> {
+class SEN0308 : public Sensor {
 public:
     /**
      * @brief Constructor for the SEN0308 sensor.
@@ -23,7 +23,7 @@ public:
     Peripheral::Status init() override;
 
     // Checks if the sensor is ready for reading.
-    bool is_ready() const override{
+    bool is_ready() const override {
         return ready;
     };
 
@@ -32,10 +32,16 @@ public:
         return "SEN0308";
     }
 
-    // Reads data from the sensor and populates the SoilMoistureData struct.
-    Sensor<buzzverse_v1_SEN0308Data>::Status read_data(buzzverse_v1_SEN0308Data* data) const override;
+    Status get_packet(buzzverse_v1_Packet& packet) const override;
+
+    void get_status(buzzverse_v1_Status& status_message) const override;
 
 private:
+    buzzverse_v1_Status_ComponentState status{buzzverse_v1_Status_ComponentState_STATE_UNSPECIFIED};
+
+    // Reads data from the sensor and populates the SoilMoistureData struct.
+    Sensor::Status read_data(buzzverse_v1_SEN0308Data& data) const;
+
     // A pointer to the ADC specification struct from the device tree.
     const struct adc_dt_spec* m_adc_spec;
 
