@@ -56,30 +56,9 @@ Status SEN0308::read_data(buzzverse_v1_SEN0308Data& data) const {
         LOG_ERR("SEN0308: Failed to convert raw ADC to millivolts: %d", ret);
         return Status::READ_ERR;
     }
+    data.millivolts = static_cast<uint16_t>(millivolts);
 
-    const int32_t VOLTAGE_DRY_MV = 2970; // 2.97V
-    const int32_t VOLTAGE_WET_MV = 330;  // 0.33V
-    const int32_t VOLTAGE_RANGE_MV = VOLTAGE_DRY_MV - VOLTAGE_WET_MV;
-
-    int32_t percent_int;
-    
-    // check for division by zero
-    if (VOLTAGE_RANGE_MV > 0) {
-        percent_int = (100 * (VOLTAGE_DRY_MV - millivolts)) / VOLTAGE_RANGE_MV;
-    } else {
-        percent_int = 0;
-    }
-
-    // Clamp the percentage to the range [0, 100]
-    if (percent_int < 0) {
-        data.percent = 0;
-    } else if (percent_int > 100) {
-        data.percent = 100;
-    } else {
-        data.percent = percent_int;
-    }
-    
-    LOG_DBG("SEN0308: Raw ADC: %u, Voltage: %u mV, Percent: %u%%", sample_buffer, millivolts, data.percent);
+    LOG_DBG("SEN0308: Raw ADC: %u, Voltage: %u mV", sample_buffer, data.millivolts);
 
     return Status::OK;
 }
