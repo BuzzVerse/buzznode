@@ -5,7 +5,7 @@
 #include <zephyr/drivers/adc.h>
 
 #include "buzzverse/bme280.pb.h"
-#include "buzzverse/sen0308.pb.h"
+#include "buzzverse/analog.pb.h"
 #include "buzzverse/bq27441.pb.h"
 #include "buzzverse/packet.pb.h"
 #include "peripherals/lorawan_handler/lorawan_handler.hpp"

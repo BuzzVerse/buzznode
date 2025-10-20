@@ -8,7 +8,7 @@
 #include "Application.hpp"
 #include "peripherals/lorawan_handler/lorawan_handler.hpp"
 #include "sensors/bme280/bme280.hpp"
-#include "sensors/sen0308/sen0308.hpp"
+#include "sensors/analog/analog.hpp"
 #include "sensors/bq27441/bq27441.hpp"
 #include "utils/banner.hpp"
 #include "utils/sleep-manager.hpp"
@@ -30,11 +30,11 @@ int main(void) {
   LOG_INF("===== Buzzverse Node System Booting (Zephyr Log) =====");
 
   BME280 bme280(DEVICE_DT_GET_ANY(bosch_bme280));
-  SEN0308 sen0308(&soil_sensor_adc_spec);
+  Analog analog(&soil_sensor_adc_spec);
 
   // Array of available sensors
   etl::array<etl::unique_ptr<Sensor>, NUMBER_OF_SENSORS> sensors {
-	etl::unique_ptr<SEN0308>(etl::move(&sen0308)),
+	etl::unique_ptr<Analog>(etl::move(&analog)),
   };
 
   BQ27441 bq27441(DEVICE_DT_GET_ANY(ti_bq274xx));
