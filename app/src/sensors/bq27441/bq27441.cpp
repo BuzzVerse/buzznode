@@ -24,7 +24,7 @@ Peripheral::Status BQ27441::init() {
   return Peripheral::Status::OK;
 }
 
-Status BQ27441::read_data(buzzverse_v1_BQ27441Data* data) const {
+Status BQ27441::read_data(buzzverse_v1_BQ27441Data& data) const {
   struct sensor_value voltage, current, state_of_charge;
 
   if (sensor_sample_fetch(bq27441_dev) != 0) {
@@ -38,13 +38,13 @@ Status BQ27441::read_data(buzzverse_v1_BQ27441Data* data) const {
   sensor_channel_get(bq27441_dev, SENSOR_CHAN_GAUGE_STATE_OF_CHARGE, &state_of_charge);
 
   // Convert sensor_value to protobuf-compatible format (e.g., millivolts, milliamps)
-  data->voltage_mv = (voltage.val1 * 1000) + (voltage.val2 / 1000);  // Convert V to mV
-  data->current_ma = (current.val1 * 1000) + (current.val2 / 1000);  // Convert A to mA
-  data->state_of_charge = state_of_charge.val1;                      // Percentage
+  data.voltage_mv = (voltage.val1 * 1000) + (voltage.val2 / 1000);  // Convert V to mV
+  data.current_ma = (current.val1 * 1000) + (current.val2 / 1000);  // Convert A to mA
+  data.state_of_charge = state_of_charge.val1;                      // Percentage
 
-  LOG_INF("Voltage: %d mV", data->voltage_mv);
-  LOG_INF("Current: %d mA", data->current_ma);
-  LOG_INF("State of charge: %d%%", data->state_of_charge);
+  LOG_INF("Voltage: %d mV", data.voltage_mv);
+  LOG_INF("Current: %d mA", data.current_ma);
+  LOG_INF("State of charge: %d%%", data.state_of_charge);
 
   return Status::OK;
 }
@@ -52,7 +52,7 @@ Status BQ27441::read_data(buzzverse_v1_BQ27441Data* data) const {
 Status BQ27441::get_packet(buzzverse_v1_Packet& packet) const {
 	buzzverse_v1_BQ27441Data data = buzzverse_v1_BQ27441Data_init_zero;
 
-	if(read_data(&data) != Sensor::Status::OK) {
+	if(read_data(data) != Sensor::Status::OK) {
 		return Status::READ_ERR;
 	}
 
