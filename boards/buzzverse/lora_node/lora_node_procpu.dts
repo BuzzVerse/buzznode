@@ -98,7 +98,8 @@
 		int-gpios = <&gpio0 2 GPIO_ACTIVE_LOW>;
 	};
 };
-// Konfiguracja pinów ADC
+
+/* ADC pin configuration */
 &pinctrl {
     adc_in_pins: adc_in_pins {
         pinmux =  <&gpio0 8 GPIO_ACTIVE_LOW>;

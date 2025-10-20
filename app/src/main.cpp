@@ -34,7 +34,7 @@ int main(void) {
 
   // Array of available sensors
   etl::array<etl::unique_ptr<Sensor>, NUMBER_OF_SENSORS> sensors {
-	etl::unique_ptr<Analog>(etl::move(&analog)),
+	etl::unique_ptr<BME280>(etl::move(&bme280)),
   };
 
   BQ27441 bq27441(DEVICE_DT_GET_ANY(ti_bq274xx));
