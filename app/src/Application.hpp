@@ -5,7 +5,7 @@
 #include "sensor.hpp"
 
 // Number of supported sensor types used in the sensors array
-#define BASE_SENSOR_COUNT 0
+#define BASE_SENSOR_COUNT 1
 
 #ifdef CONFIG_ENABLE_ANALOG
     #define ANALOG_SENSOR_COUNT 1 // Analog sensor is enabled
