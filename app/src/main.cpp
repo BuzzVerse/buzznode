@@ -49,7 +49,7 @@ int main(void) {
 #endif
 
   Application app(sensors, lorawan, etl::move(p_sleep_manager));
-  
+
   if (!app.init()) {
     LOG_ERR("Critical application initialization failed!");
 

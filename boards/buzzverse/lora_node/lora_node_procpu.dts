@@ -34,7 +34,8 @@
 		bq27441-i2c = &i2c0;
 		lora0 = &lora0;
 	};
-	    zephyr,user {
+	
+	zephyr,user {
         io-channels = <&adc1 6>;
         io-channels-names = "a0";
     };
