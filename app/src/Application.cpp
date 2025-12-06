@@ -5,7 +5,6 @@
 
 #include "buzzverse/packet.pb.h"
 #include "peripherals/lorawan_handler/lorawan_handler.hpp"
-#include "utils/sleep-manager.hpp"
 
 LOG_MODULE_REGISTER(application, CONFIG_APP_LOG_LEVEL);
 
@@ -26,12 +25,9 @@ bool Application::init() {
     return false;
   }
 
-#if defined(CONFIG_SOC_ESP32S3)
   if (m_sleep_manager && m_sleep_manager->is_ready()) {
-    esp_sleep_wakeup_cause_t cause = m_sleep_manager->get_wakeup_cause();
-    LOG_INF("ESP32S3 Wakeup cause: %d", cause);
+    LOG_INF("Wakeup cause: %d", static_cast<int>(m_sleep_manager->get_wakeup_cause()));
   }
-#endif
   LOG_INF("Application core initialization complete.");
   return true;
 }
@@ -117,7 +113,7 @@ void Application::enter_low_power_mode(int sleep_duration_ms) {
   if (!m_sleep_manager || !m_sleep_manager->is_ready()) {
     LOG_WRN("SleepManager not available/ready. Defaulting to k_sleep for %d ms.",
             sleep_duration_ms);
-    k_sleep(K_MSEC(sleep_duration_ms));
+    k_msleep(sleep_duration_ms);
     sys_reboot(SYS_REBOOT_COLD);
   }
 

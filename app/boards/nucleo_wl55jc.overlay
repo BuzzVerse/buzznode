@@ -3,7 +3,8 @@
 / {
     aliases {
         bme280-i2c = &i2c2;
-    };
+        wkup-src = &user_button_1;
+		};
 };
 
 &i2c2 {
@@ -17,4 +18,8 @@
         reg = <0x76>;
         status = "okay";
     };
+};
+
+&pwr { 
+	status = "okay"; 
 };
