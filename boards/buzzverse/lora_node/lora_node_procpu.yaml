@@ -17,6 +17,7 @@ supported:
   - pwm
   - dma
   - lora
+  - esp32s3-pinctrl
 testing:
   ignore_tags:
     - net

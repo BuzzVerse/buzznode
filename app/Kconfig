@@ -81,6 +81,12 @@ config SLEEP_TIME_MS
     help
         Duration for which the device will sleep before waking up. This value is in milliseconds.
 
+config ENABLE_ANALOG
+    bool "Enable Analog Sensor"
+    default n
+    help
+        Enable support for Analog sensor.
+
 source "Kconfig.zephyr"
 endmenu
 

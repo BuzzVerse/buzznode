@@ -3,10 +3,12 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/sys/printk.h>
 #include <zephyr/sys/reboot.h>
+#include <zephyr/drivers/adc.h>
 
 #include "Application.hpp"
 #include "peripherals/lorawan_handler/lorawan_handler.hpp"
 #include "sensors/bme280/bme280.hpp"
+#include "sensors/analog/analog.hpp"
 #include "sensors/bq27441/bq27441.hpp"
 #include "utils/banner.hpp"
 #include "utils/sleep-manager.hpp"
@@ -19,14 +21,23 @@ LOG_MODULE_REGISTER(main_entry, LOG_LEVEL_DBG);
   #define APP_SLEEP_DURATION_MS 10000
 #endif
 
+static const struct adc_dt_spec soil_sensor_adc_spec =
+    ADC_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 0);
+
+
 int main(void) {
   printk("%s\n", APP_ASCII_BANNER);
   LOG_INF("===== Buzzverse Node System Booting (Zephyr Log) =====");
 
   BME280 bme280(DEVICE_DT_GET_ANY(bosch_bme280));
+  Analog analog(&soil_sensor_adc_spec);
+
   // Array of available sensors
   etl::array<etl::unique_ptr<Sensor>, NUMBER_OF_SENSORS> sensors {
 	etl::unique_ptr<BME280>(etl::move(&bme280)),
+#ifdef CONFIG_ENABLE_ANALOG
+  etl::unique_ptr<Analog>(etl::move(&analog)),
+#endif
   };
 
   BQ27441 bq27441(DEVICE_DT_GET_ANY(ti_bq274xx));
