@@ -10,6 +10,7 @@
 #include "sensors/bme280/bme280.hpp"
 #include "sensors/analog/analog.hpp"
 #include "sensors/bq27441/bq27441.hpp"
+#include "sensors/motion_sensor/pir.hpp"
 #include "utils/banner.hpp"
 #include "utils/sleep-manager.hpp"
 
@@ -21,22 +22,37 @@ LOG_MODULE_REGISTER(main_entry, LOG_LEVEL_DBG);
   #define APP_SLEEP_DURATION_MS 10000
 #endif
 
+#ifdef CONFIG_ENABLE_ANALOG
 static const struct adc_dt_spec soil_sensor_adc_spec =
     ADC_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 0);
+#endif
+
+#ifdef CONFIG_ENABLE_MOTION_SENSOR
+static const struct gpio_dt_spec motion_sensor_gpio_spec =
+    GPIO_DT_SPEC_GET(DT_PATH(zephyr_user), motion_gpios);
+#endif
 
 
 int main(void) {
   printk("%s\n", APP_ASCII_BANNER);
   LOG_INF("===== Buzzverse Node System Booting (Zephyr Log) =====");
 
-  BME280 bme280(DEVICE_DT_GET_ANY(bosch_bme280));
+  //BME280 bme280(DEVICE_DT_GET_ANY(bosch_bme280));
+#ifdef CONFIG_ENABLE_ANALOG
   Analog analog(&soil_sensor_adc_spec);
+#endif
+#ifdef CONFIG_ENABLE_MOTION_SENSOR
+  MotionSensor motion_sensor(&motion_sensor_gpio_spec);
+#endif
 
   // Array of available sensors
   etl::array<etl::unique_ptr<Sensor>, NUMBER_OF_SENSORS> sensors {
-	etl::unique_ptr<BME280>(etl::move(&bme280)),
+	//etl::unique_ptr<BME280>(etl::move(&bme280)),
 #ifdef CONFIG_ENABLE_ANALOG
   etl::unique_ptr<Analog>(etl::move(&analog)),
+#endif
+#ifdef CONFIG_ENABLE_MOTION_SENSOR
+  etl::unique_ptr<MotionSensor>(etl::move(&motion_sensor)),
 #endif
   };
 

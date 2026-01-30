@@ -87,6 +87,12 @@ config ENABLE_ANALOG
     help
         Enable support for Analog sensor.
 
+config ENABLE_MOTION_SENSOR
+    bool "Enable Motion Sensor"
+    default n
+    help
+        Enable support for Motion sensor.
+
 source "Kconfig.zephyr"
 endmenu
 
