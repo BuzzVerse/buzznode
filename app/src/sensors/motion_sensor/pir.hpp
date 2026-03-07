@@ -7,6 +7,9 @@
 #include "buzzverse/motion_sensor.pb.h"
 #include "sensors/sensor.hpp"
 
+static struct gpio_callback cb_data;
+void motion_detected_cb(const struct device *dev, struct gpio_callback *cb_data, uint32_t pins);
+
 class MotionSensor : public Sensor {
  public:
   explicit MotionSensor(const struct gpio_dt_spec* gpio_spec);

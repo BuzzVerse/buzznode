@@ -30,6 +30,7 @@ static const struct adc_dt_spec soil_sensor_adc_spec =
 #ifdef CONFIG_ENABLE_MOTION_SENSOR
 static const struct gpio_dt_spec motion_sensor_gpio_spec =
     GPIO_DT_SPEC_GET(DT_PATH(zephyr_user), motion_gpios);
+	//GPIO_DT_SPEC_GET_OR(DT_ALIAS(sw0), gpios, 0);
 #endif
 
 
