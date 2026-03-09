@@ -7,6 +7,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/sys/poweroff.h>
+#include <zephyr/pm/pm.h>
 
 #include "peripherals/rtc/rtc_peripheral.hpp"
 #include "sleep_manager_base.hpp"
@@ -23,12 +24,9 @@ class SleepManagerStm : public SleepManagerBase {
   void set_sleep_duration(int duration_ms) override;
   void timed_sleep() override;
 
-  WakeCause get_wakeup_cause() const override;
-
  private:
   bool initialized;
   int sleep_timeout_ms;
-  WakeCause wake_cause;
 
 #ifdef CONFIG_SOC_STM32WL55XX
   gpio_dt_spec wkup_gpio;

@@ -4,14 +4,22 @@ LOG_MODULE_REGISTER(sleep_mgr_stm, LOG_LEVEL_INF);
 
 SleepManagerStm::SleepManagerStm()
     : initialized(false),
-      sleep_timeout_ms(DEFAULT_SLEEP_DURATION_MS),
-      wake_cause(WakeCause::POWER_ON_RESET)
+      sleep_timeout_ms(DEFAULT_SLEEP_DURATION_MS)
 #ifdef CONFIG_SOC_STM32WL55XX
       ,
       wkup_gpio(GPIO_DT_SPEC_GET(DT_ALIAS(wkup_src), gpios)),
       rtc()
 #endif
 {
+}
+
+static struct gpio_callback btn_cb_data;
+
+int count = 0;
+
+void button_isr(const struct device* dev, struct gpio_callback* cb, uint32_t pins) {
+  count++;
+  printk("Button pressed! Total count: %d\n", count);
 }
 
 Peripheral::Status SleepManagerStm::init() {
@@ -21,11 +29,16 @@ Peripheral::Status SleepManagerStm::init() {
     return Peripheral::Status::NOT_READY;
   }
 
-  const int pin_rc = gpio_pin_configure_dt(&wkup_gpio, STM32_GPIO_WKUP);
+  const int pin_rc = gpio_pin_configure_dt(&wkup_gpio, GPIO_INPUT);
   if (pin_rc != 0) {
     LOG_ERR("wkup gpio cfg failed (%d)", pin_rc);
     return Peripheral::Status::ERROR_HW_CONFIG_FAILED;
   }
+
+  gpio_pin_interrupt_configure_dt(&wkup_gpio, GPIO_INT_EDGE_TO_ACTIVE);
+
+  gpio_init_callback(&btn_cb_data, button_isr, BIT(wkup_gpio.pin));
+  gpio_add_callback(wkup_gpio.port, &btn_cb_data);
 
   const Peripheral::Status rtc_rc = rtc.init();
   if (rtc_rc != Peripheral::Status::OK && rtc_rc != Peripheral::Status::ERROR_ALREADY_INITIALIZED) {
@@ -38,7 +51,6 @@ Peripheral::Status SleepManagerStm::init() {
     return Peripheral::Status::NOT_READY;
   }
 
-  wake_cause = WakeCause::POWER_ON_RESET;
 #endif
 
   initialized = true;
@@ -69,13 +81,11 @@ void SleepManagerStm::enter_sleep(SleepMode mode) {
   if (!rtc.is_ready()) {
     LOG_ERR("rtc unavailable");
     k_msleep(sleep_timeout_ms);
-    wake_cause = WakeCause::TIMER;
     return;
   }
 
   if (!rtc.ensure_time_valid()) {
     LOG_WRN("rtc time invalid, sleep without alarm");
-    wake_cause = WakeCause::WAKEUP_PIN;
     sys_poweroff();
     return;
   }
@@ -83,7 +93,6 @@ void SleepManagerStm::enter_sleep(SleepMode mode) {
   rtc_time now;
   if (!rtc.get_time(now)) {
     LOG_WRN("rtc read failed, sleep without alarm");
-    wake_cause = WakeCause::WAKEUP_PIN;
     sys_poweroff();
     return;
   }
@@ -94,24 +103,20 @@ void SleepManagerStm::enter_sleep(SleepMode mode) {
   rtc_time alarm_time;
   if (!rtc.epoch_to_rtc_time(epoch_alarm, alarm_time)) {
     LOG_WRN("rtc convert failed, sleep without alarm");
-    wake_cause = WakeCause::WAKEUP_PIN;
     sys_poweroff();
     return;
   }
 
   if (!rtc.set_alarm(alarm_time)) {
     LOG_WRN("rtc alarm set failed, sleep without alarm");
-    wake_cause = WakeCause::WAKEUP_PIN;
-    sys_poweroff();
     return;
   }
 
-  LOG_INF("sleep %d ms (rtc alarm armed)", sleep_timeout_ms);
-  wake_cause = WakeCause::RTC_ALARM;
-  sys_poweroff();
+  //sys_poweroff();
+  k_sleep(K_FOREVER);
+
 #else
   k_msleep(sleep_timeout_ms);
-  wake_cause = WakeCause::TIMER;
 #endif
 }
 
@@ -130,9 +135,4 @@ void SleepManagerStm::timed_sleep() {
   }
 
   k_msleep(sleep_timeout_ms);
-  wake_cause = WakeCause::TIMER;
-}
-
-SleepManagerBase::WakeCause SleepManagerStm::get_wakeup_cause() const {
-  return wake_cause;
 }

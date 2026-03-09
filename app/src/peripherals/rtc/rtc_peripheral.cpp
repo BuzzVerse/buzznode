@@ -4,6 +4,10 @@ LOG_MODULE_REGISTER(rtc_periph, LOG_LEVEL_INF);
 
 RtcPeripheral::RtcPeripheral() : rtc_dev(DEVICE_DT_GET(DT_NODELABEL(rtc))), initialized(false) {}
 
+static void rtc_alarm_handler(const struct device* dev, uint16_t id, void* user_data) {
+  printk("RTC ALARM FIRED! id=%u\n", id);
+}
+
 Peripheral::Status RtcPeripheral::init() {
   if (initialized) {
     return Peripheral::Status::ERROR_ALREADY_INITIALIZED;
@@ -21,6 +25,8 @@ Peripheral::Status RtcPeripheral::init() {
       return Peripheral::Status::ERROR_HW_CONFIG_FAILED;
     }
   }
+
+  rtc_alarm_set_callback(rtc_dev, 0, rtc_alarm_handler, nullptr);
 
   initialized = true;
   return Peripheral::Status::OK;
