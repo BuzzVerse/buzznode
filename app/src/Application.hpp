@@ -7,7 +7,16 @@
 #include "peripherals/sleep/sleep_manager.hpp"
 
 // Number of supported sensor types used in the sensors array
-#define NUMBER_OF_SENSORS 1
+#define BASE_SENSOR_COUNT 1
+
+#ifdef CONFIG_ENABLE_ANALOG
+    #define ANALOG_SENSOR_COUNT 1 // Analog sensor is enabled
+#else
+    #define ANALOG_SENSOR_COUNT 0 // Analog sensor is disabled
+#endif
+
+// The final fixed size is calculated by the preprocessor
+#define NUMBER_OF_SENSORS (BASE_SENSOR_COUNT + ANALOG_SENSOR_COUNT)
 
 class LoRaWANHandler;
 

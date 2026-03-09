@@ -15,6 +15,12 @@
             zephyr,code = <INPUT_KEY_1>;
         };
     };
+
+    zephyr,user {
+        io-channels = <&adc1 6>;
+        io-channels-names = "a0";
+    };
+
 };
 
 &i2c2 {
@@ -27,6 +33,21 @@
         compatible = "bosch,bme280";
         reg = <0x76>;
         status = "okay";
+    };
+};
+
+&adc1 {
+    status = "okay";
+
+    #address-cells = <1>;
+    #size-cells = <0>;
+
+    soil_sensor: channel@6 {
+        reg = <6>;
+        zephyr,gain = "ADC_GAIN_1";
+        zephyr,reference = "ADC_REF_INTERNAL";
+        zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+        zephyr,resolution = <12>;
     };
 };
 
