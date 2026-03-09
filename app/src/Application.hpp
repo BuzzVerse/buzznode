@@ -1,8 +1,10 @@
 #ifndef APPLICATION_HPP
 #define APPLICATION_HPP
 
+#include <zephyr/kernel.h>
 #include "buzzverse/packet.pb.h"
 #include "sensor.hpp"
+#include "peripherals/sleep/sleep_manager.hpp"
 
 // Number of supported sensor types used in the sensors array
 #define BASE_SENSOR_COUNT 1
@@ -17,7 +19,6 @@
 #define NUMBER_OF_SENSORS (BASE_SENSOR_COUNT + ANALOG_SENSOR_COUNT)
 
 class LoRaWANHandler;
-class SleepManager;
 
 class Application {
  public:

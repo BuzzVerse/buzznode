@@ -7,11 +7,11 @@
 
 #include "Application.hpp"
 #include "peripherals/lorawan_handler/lorawan_handler.hpp"
+#include "peripherals/sleep/sleep_manager.hpp"
 #include "sensors/bme280/bme280.hpp"
 #include "sensors/analog/analog.hpp"
 #include "sensors/bq27441/bq27441.hpp"
 #include "utils/banner.hpp"
-#include "utils/sleep-manager.hpp"
 
 LOG_MODULE_REGISTER(main_entry, LOG_LEVEL_DBG);
 
@@ -73,7 +73,7 @@ int main(void) {
 #else
   LOG_INF("Device sleep not enabled. Entering polling loop.");
   while (true) {
-    k_sleep(K_MSEC(APP_SLEEP_DURATION_MS));
+    k_msleep(APP_SLEEP_DURATION_MS);
     app.run_cycle();
   }
 #endif
