@@ -20,6 +20,8 @@ class SleepManagerStm : public SleepManagerBase {
   bool is_ready() const override;
   etl::string<SLEEP_MANAGER_NAME_SIZE> get_name() const override;
 
+  uint32_t get_and_clear_wakeup_count() override;
+  
   void enter_sleep(SleepMode mode) override;
   void set_sleep_duration(int duration_ms) override;
   void timed_sleep() override;

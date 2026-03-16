@@ -20,6 +20,8 @@ class SleepManagerBase : public Peripheral {
   virtual bool is_ready() const = 0;
   virtual etl::string<SLEEP_MANAGER_NAME_SIZE> get_name() const = 0;
 
+  virtual uint32_t get_and_clear_wakeup_count() { return 0; }
+  
   virtual void enter_sleep(SleepMode mode) = 0;
   virtual void set_sleep_duration(int duration_ms) = 0;
   virtual void timed_sleep() = 0;

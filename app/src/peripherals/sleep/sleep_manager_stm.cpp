@@ -19,7 +19,6 @@ namespace {
       last_wkup_time = current_time;
       wkup_count++;
       printk("Wakeup trigger! Total count: %u\n", wkup_count);
-      k_sem_give(&wakeup_sem);
     }
   }
 }
@@ -34,6 +33,12 @@ SleepManagerStm::SleepManagerStm()
       rtc()
 #endif
 {
+}
+
+uint32_t SleepManagerStm::get_and_clear_wakeup_count() {
+    uint32_t current_count = wkup_count;
+    wkup_count = 0;
+    return current_count;
 }
 
 Peripheral::Status SleepManagerStm::init() {

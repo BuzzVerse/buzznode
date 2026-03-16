@@ -84,24 +84,38 @@ void Application::generate_init_failure_report(buzzverse_v1_Packet& packet) {
 }
 
 void Application::run_cycle() {
-  k_msleep(50);
+    k_msleep(50);
+    LOG_INF("--- Starting Application Cycle ---");
 
-  LOG_INF("--- Starting Application Cycle ---");
+    if (m_sleep_manager) {
+        uint32_t count = m_sleep_manager->get_and_clear_wakeup_count();
+        
+        if (count > 0) {
+            LOG_INF("Detected %u wakeup events. Sending report...", count);
+            
+            buzzverse_v1_Packet packet = buzzverse_v1_Packet_init_default;
+            packet.which_data = buzzverse_v1_Packet_status_tag;
+            
+            for (auto& sensor : m_sensors) {
+                if (sensor) sensor->get_status(packet.data.status);
+            }
 
-  for(auto& sensor: m_sensors) {
-    if (sensor && sensor->is_ready()) {
-      buzzverse_v1_Packet packet;
-      if (sensor->get_packet(packet) == Sensor::Status::OK) {
-        send_lora_packet(packet);
-      } else {
-        LOG_ERR("Failed to get %s packet", sensor->get_name().c_str());
-      }
-    } else {
-      LOG_ERR("%s not ready for reading.", sensor->get_name().c_str());
+            send_lora_packet(packet);
+        }
     }
-  }
 
-  LOG_INF("--- Application Cycle Complete ---");
+    for (auto& sensor : m_sensors) {
+        if (sensor && sensor->is_ready()) {
+            buzzverse_v1_Packet packet;
+            if (sensor->get_packet(packet) == Sensor::Status::OK) {
+                send_lora_packet(packet);
+            } else {
+                LOG_ERR("Failed to get %s packet", sensor->get_name().c_str());
+            }
+        }
+    }
+
+    LOG_INF("--- Application Cycle Complete ---");
 }
 
 void Application::enter_low_power_mode(int sleep_duration_ms) {
