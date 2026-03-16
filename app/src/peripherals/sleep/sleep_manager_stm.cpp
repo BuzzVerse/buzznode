@@ -2,43 +2,68 @@
 
 LOG_MODULE_REGISTER(sleep_mgr_stm, LOG_LEVEL_INF);
 
+extern struct k_sem wakeup_sem;
+
+namespace {
+  struct gpio_callback wkup_cb_data_1;
+  struct gpio_callback wkup_cb_data_2;
+  
+  volatile uint32_t wkup_count = 0;
+  volatile uint32_t last_wkup_time = 0;
+
+  void wkup_isr(const struct device* dev, struct gpio_callback* cb, uint32_t pins) {
+    uint32_t current_time = k_uptime_get_32();
+    
+    // Debouncing (250ms)
+    if (current_time - last_wkup_time > 250) {
+      last_wkup_time = current_time;
+      wkup_count++;
+      printk("Wakeup trigger! Total count: %u\n", wkup_count);
+      k_sem_give(&wakeup_sem);
+    }
+  }
+}
+
 SleepManagerStm::SleepManagerStm()
     : initialized(false),
       sleep_timeout_ms(DEFAULT_SLEEP_DURATION_MS)
 #ifdef CONFIG_SOC_STM32WL55XX
       ,
-      wkup_gpio(GPIO_DT_SPEC_GET(DT_ALIAS(wkup_src), gpios)),
+      wkup_gpio_1(GPIO_DT_SPEC_GET(DT_ALIAS(wkup_src_1), gpios)),
+      wkup_gpio_2(GPIO_DT_SPEC_GET(DT_ALIAS(wkup_src_2), gpios)),
       rtc()
 #endif
 {
 }
 
-static struct gpio_callback btn_cb_data;
-
-int count = 0;
-
-void button_isr(const struct device* dev, struct gpio_callback* cb, uint32_t pins) {
-  count++;
-  printk("Button pressed! Total count: %d\n", count);
-}
-
 Peripheral::Status SleepManagerStm::init() {
 #ifdef CONFIG_SOC_STM32WL55XX
-  if (!device_is_ready(wkup_gpio.port)) {
-    LOG_ERR("wkup gpio not ready");
-    return Peripheral::Status::NOT_READY;
+
+  if (!device_is_ready(wkup_gpio_1.port)) {
+    LOG_ERR("wkup gpio 1 not ready");
+  } else {
+    if (gpio_pin_configure_dt(&wkup_gpio_1, GPIO_INPUT) != 0) {
+      LOG_ERR("wkup gpio 1 cfg failed");
+    } else {
+      gpio_pin_interrupt_configure_dt(&wkup_gpio_1, GPIO_INT_EDGE_TO_ACTIVE);
+      gpio_init_callback(&wkup_cb_data_1, wkup_isr, BIT(wkup_gpio_1.pin));
+      gpio_add_callback(wkup_gpio_1.port, &wkup_cb_data_1);
+      LOG_INF("Wakeup source 1 initialized.");
+    }
   }
 
-  const int pin_rc = gpio_pin_configure_dt(&wkup_gpio, GPIO_INPUT);
-  if (pin_rc != 0) {
-    LOG_ERR("wkup gpio cfg failed (%d)", pin_rc);
-    return Peripheral::Status::ERROR_HW_CONFIG_FAILED;
+  if (!device_is_ready(wkup_gpio_2.port)) {
+    LOG_ERR("wkup gpio 2 not ready");
+  } else {
+    if (gpio_pin_configure_dt(&wkup_gpio_2, GPIO_INPUT) != 0) {
+      LOG_ERR("wkup gpio 2 cfg failed");
+    } else {
+      gpio_pin_interrupt_configure_dt(&wkup_gpio_2, GPIO_INT_EDGE_TO_ACTIVE);
+      gpio_init_callback(&wkup_cb_data_2, wkup_isr, BIT(wkup_gpio_2.pin));
+      gpio_add_callback(wkup_gpio_2.port, &wkup_cb_data_2);
+      LOG_INF("Wakeup source 2 initialized.");
+    }
   }
-
-  gpio_pin_interrupt_configure_dt(&wkup_gpio, GPIO_INT_EDGE_TO_ACTIVE);
-
-  gpio_init_callback(&btn_cb_data, button_isr, BIT(wkup_gpio.pin));
-  gpio_add_callback(wkup_gpio.port, &btn_cb_data);
 
   const Peripheral::Status rtc_rc = rtc.init();
   if (rtc_rc != Peripheral::Status::OK && rtc_rc != Peripheral::Status::ERROR_ALREADY_INITIALIZED) {
@@ -86,14 +111,14 @@ void SleepManagerStm::enter_sleep(SleepMode mode) {
 
   if (!rtc.ensure_time_valid()) {
     LOG_WRN("rtc time invalid, sleep without alarm");
-    sys_poweroff();
+    k_sem_take(&wakeup_sem, K_FOREVER);
     return;
   }
 
   rtc_time now;
   if (!rtc.get_time(now)) {
     LOG_WRN("rtc read failed, sleep without alarm");
-    sys_poweroff();
+    k_sem_take(&wakeup_sem, K_FOREVER);
     return;
   }
 
@@ -103,7 +128,7 @@ void SleepManagerStm::enter_sleep(SleepMode mode) {
   rtc_time alarm_time;
   if (!rtc.epoch_to_rtc_time(epoch_alarm, alarm_time)) {
     LOG_WRN("rtc convert failed, sleep without alarm");
-    sys_poweroff();
+    k_sem_take(&wakeup_sem, K_FOREVER);
     return;
   }
 
@@ -112,8 +137,7 @@ void SleepManagerStm::enter_sleep(SleepMode mode) {
     return;
   }
 
-  //sys_poweroff();
-  k_sleep(K_FOREVER);
+  k_sem_take(&wakeup_sem, K_FOREVER);
 
 #else
   k_msleep(sleep_timeout_ms);

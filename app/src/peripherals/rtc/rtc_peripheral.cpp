@@ -2,10 +2,13 @@
 
 LOG_MODULE_REGISTER(rtc_periph, LOG_LEVEL_INF);
 
+extern struct k_sem wakeup_sem;
+
 RtcPeripheral::RtcPeripheral() : rtc_dev(DEVICE_DT_GET(DT_NODELABEL(rtc))), initialized(false) {}
 
 static void rtc_alarm_handler(const struct device* dev, uint16_t id, void* user_data) {
   printk("RTC ALARM FIRED! id=%u\n", id);
+  k_sem_give(&wakeup_sem);
 }
 
 Peripheral::Status RtcPeripheral::init() {
@@ -96,13 +99,17 @@ bool RtcPeripheral::epoch_to_rtc_time(int64_t epoch, rtc_time& out) const {
 }
 
 bool RtcPeripheral::set_default_time() {
+#ifndef CONFIG_DEFAULT_RTC_YEAR
+#define CONFIG_DEFAULT_RTC_YEAR 2025
+#endif
+
   rtc_time def{};
   def.tm_sec = 0;
   def.tm_min = 0;
   def.tm_hour = 0;
   def.tm_mday = 1;
   def.tm_mon = 0;
-  def.tm_year = 2025 - 1900;
+  def.tm_year = CONFIG_DEFAULT_RTC_YEAR - 1900;
   def.tm_wday = 0;
   def.tm_yday = 0;
   def.tm_isdst = 0;

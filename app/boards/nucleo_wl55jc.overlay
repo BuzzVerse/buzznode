@@ -3,7 +3,8 @@
 / {
     aliases {
         bme280-i2c = &i2c2;
-        wkup-src = &user_input_pc4;
+        wkup-src-1 = &user_input_pc4;
+        wkup-src-2 = &user_button_1;
     };
 
     gpio_keys {
@@ -23,10 +24,11 @@
 };
 
 &i2c2 {
-    pinctrl-0 = <&i2c2_scl_pa12 &i2c2_sda_pa11>;
-    pinctrl-names = "default";
     status = "okay";
     clock-frequency = <I2C_BITRATE_FAST>;
+
+    pinctrl-0 = <&i2c2_scl_pa12 &i2c2_sda_pa11>;
+    pinctrl-names = "default";
 
     bme280@76 {
         compatible = "bosch,bme280";

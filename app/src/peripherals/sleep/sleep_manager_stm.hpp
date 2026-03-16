@@ -29,7 +29,8 @@ class SleepManagerStm : public SleepManagerBase {
   int sleep_timeout_ms;
 
 #ifdef CONFIG_SOC_STM32WL55XX
-  gpio_dt_spec wkup_gpio;
+  gpio_dt_spec wkup_gpio_1;
+  gpio_dt_spec wkup_gpio_2;
   RtcPeripheral rtc;
 #endif
 };
