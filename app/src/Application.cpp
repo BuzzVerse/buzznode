@@ -96,10 +96,6 @@ void Application::run_cycle() {
             buzzverse_v1_Packet packet = buzzverse_v1_Packet_init_default;
             packet.which_data = buzzverse_v1_Packet_counter_tag;
             packet.data.counter.counter = count;
-            
-            for (auto& sensor : m_sensors) {
-                if (sensor) sensor->get_status(packet.data.status);
-            }
 
             send_lora_packet(packet);
         }
@@ -107,7 +103,7 @@ void Application::run_cycle() {
 
     for (auto& sensor : m_sensors) {
         if (sensor && sensor->is_ready()) {
-            buzzverse_v1_Packet packet;
+            buzzverse_v1_Packet packet = buzzverse_v1_Packet_init_default;
             if (sensor->get_packet(packet) == Sensor::Status::OK) {
                 send_lora_packet(packet);
             } else {
