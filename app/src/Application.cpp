@@ -94,7 +94,8 @@ void Application::run_cycle() {
             LOG_INF("Detected %u wakeup events. Sending report...", count);
             
             buzzverse_v1_Packet packet = buzzverse_v1_Packet_init_default;
-            packet.which_data = buzzverse_v1_Packet_status_tag;
+            packet.which_data = buzzverse_v1_Packet_counter_tag;
+            packet.data.counter.counter = count;
             
             for (auto& sensor : m_sensors) {
                 if (sensor) sensor->get_status(packet.data.status);
