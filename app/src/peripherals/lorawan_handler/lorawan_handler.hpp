@@ -54,7 +54,7 @@ class LoRaWANHandler : public Peripheral {
   etl::array<uint8_t, KEY_SIZE> app_skey;
   etl::array<uint8_t, KEY_SIZE> nwk_skey;
 
-  static Sensor* battery_sensor;
+  static etl::unique_ptr<Sensor> battery_sensor;
   static uint8_t battery_level_callback();
 };
 

@@ -9,10 +9,10 @@
 
 LOG_MODULE_REGISTER(lorawan_handler, LOG_LEVEL_DBG);
 
-Sensor* LoRaWANHandler::battery_sensor = nullptr;
+etl::unique_ptr<Sensor> LoRaWANHandler::battery_sensor(nullptr);
 
-LoRaWANHandler::LoRaWANHandler(Sensor& battery_sensor_ref) {
-  LoRaWANHandler::battery_sensor = &battery_sensor_ref;
+LoRaWANHandler::LoRaWANHandler(Sensor& battery_sensor) {
+  LoRaWANHandler::battery_sensor = etl::unique_ptr<Sensor>(etl::move(&battery_sensor));
 
 #if defined(CONFIG_LORAWAN_JOIN_OTAA)
   const char* dev_eui_str = CONFIG_LORAWAN_DEV_EUI;
