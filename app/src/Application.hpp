@@ -13,8 +13,14 @@
     #define ANALOG_SENSOR_COUNT 0 // Analog sensor is disabled
 #endif
 
+#ifdef CONFIG_ENABLE_DUST_SENSOR
+    #define DUST_SENSOR_COUNT 1 // Dust sensor is enabled
+#else
+    #define DUST_SENSOR_COUNT 0 // Dust sensor is disabled
+#endif
+
 // The final fixed size is calculated by the preprocessor
-#define NUMBER_OF_SENSORS (BASE_SENSOR_COUNT + ANALOG_SENSOR_COUNT)
+#define NUMBER_OF_SENSORS (BASE_SENSOR_COUNT + ANALOG_SENSOR_COUNT + DUST_SENSOR_COUNT)
 
 class LoRaWANHandler;
 class SleepManager;

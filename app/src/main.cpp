@@ -9,6 +9,7 @@
 #include "peripherals/lorawan_handler/lorawan_handler.hpp"
 #include "sensors/bme280/bme280.hpp"
 #include "sensors/analog/analog.hpp"
+#include "sensors/dust_sensor/dust_sensor.hpp"
 #include "sensors/bq27441/bq27441.hpp"
 #include "utils/banner.hpp"
 #include "utils/sleep-manager.hpp"
@@ -24,6 +25,11 @@ LOG_MODULE_REGISTER(main_entry, LOG_LEVEL_DBG);
 static const struct adc_dt_spec soil_sensor_adc_spec =
     ADC_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 0);
 
+#ifdef CONFIG_ENABLE_DUST_SENSOR
+static const struct gpio_dt_spec iled_gpio_spec =
+    GPIO_DT_SPEC_GET(DT_PATH(zephyr_user), iled_gpios);
+#endif
+
 
 int main(void) {
   printk("%s\n", APP_ASCII_BANNER);
@@ -31,12 +37,18 @@ int main(void) {
 
   BME280 bme280(DEVICE_DT_GET_ANY(bosch_bme280));
   Analog analog(&soil_sensor_adc_spec);
+#ifdef CONFIG_ENABLE_DUST_SENSOR
+  DustSensor dust_sensor(&soil_sensor_adc_spec, &iled_gpio_spec);
+#endif
 
   // Array of available sensors
   etl::array<etl::unique_ptr<Sensor>, NUMBER_OF_SENSORS> sensors {
 	etl::unique_ptr<BME280>(etl::move(&bme280)),
 #ifdef CONFIG_ENABLE_ANALOG
   etl::unique_ptr<Analog>(etl::move(&analog)),
+#endif
+#ifdef CONFIG_ENABLE_DUST_SENSOR
+  etl::unique_ptr<DustSensor>(etl::move(&dust_sensor)),
 #endif
   };
 

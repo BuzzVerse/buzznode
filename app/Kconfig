@@ -81,11 +81,48 @@ config SLEEP_TIME_MS
     help
         Duration for which the device will sleep before waking up. This value is in milliseconds.
 
-config ENABLE_ANALOG
-    bool "Enable Analog Sensor"
+choice ANALOG_SENSOR_TYPE
+    prompt "Analog Pin Sensor Type"
+    default ANALOG_SENSOR_NONE
+    help
+        Select the type of sensor connected to the analog pin (A0/Channel 6).
+
+    config ANALOG_SENSOR_NONE
+        bool "None"
+
+    config ENABLE_ANALOG
+        bool "Soil Moisture Sensor"
+        help
+            Enable support for Analog Soil Moisture sensor.
+
+    config ENABLE_DUST_SENSOR
+        bool "Waveshare Dust Sensor"
+        help
+            Enable support for Waveshare Dust Sensor.
+endchoice
+
+config ENABLE_MOTION_SENSOR
+    bool "Motion Sensor"
     default n
     help
-        Enable support for Analog sensor.
+        Enable support for Motion sensor.
+
+if ENABLE_DUST_SENSOR
+
+config DUST_SENSOR_ADC_CHANNEL
+    int "Dust Sensor ADC Channel"
+    default 6
+    help
+        ADC channel index for the Dust Sensor.
+
+config DUST_SENSOR_ILED_GPIO
+    string "Dust Sensor ILED GPIO"
+    default "PA0"
+    help
+        GPIO pin for the Dust Sensor ILED control (e.g. PA0).
+
+endif # ENABLE_DUST_SENSOR
+
 
 source "Kconfig.zephyr"
 endmenu

@@ -56,6 +56,7 @@ Status Analog::read_data(buzzverse_v1_Analog& data) const {
         return Status::READ_ERR;
     }
     data.millivolts = static_cast<uint16_t>(millivolts);
+    data.type = buzzverse_v1_Analog_SensorType_SOIL_MOISTURE;
 
     LOG_DBG("Analog: Raw Analog: %u, Voltage: %u mV", sample_buffer, data.millivolts);
 

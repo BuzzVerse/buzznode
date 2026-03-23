@@ -8,6 +8,7 @@
     zephyr,user {
         io-channels = <&adc1 6>;
         io-channels-names = "a0";
+        iled-gpios = <&gpioa 0 GPIO_ACTIVE_HIGH>;
     };
 };
 
