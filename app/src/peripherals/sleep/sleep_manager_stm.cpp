@@ -9,6 +9,8 @@ volatile uint32_t last_wkup_time = 0;
 void wkup_isr(const struct device* dev, struct gpio_callback* cb, uint32_t pins) {
   uint32_t current_time = k_uptime_get_32();
 
+  LOG_INF("Wakeup ISR triggered on device %s, pins 0x%08x", dev->name, pins);
+
   if (current_time - last_wkup_time > CONFIG_GPIO_WAKEUP_DEBOUNCE_MS) {
     last_wkup_time = current_time;
     wkup_count++;
