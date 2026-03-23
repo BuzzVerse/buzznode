@@ -2,7 +2,6 @@
 
 #include <zephyr/drivers/sensor.h>
 #include <zephyr/logging/log.h>
-#include <zephyr/pm/device_runtime.h>
 
 #include "buzzverse/bme280.pb.h"
 
@@ -28,19 +27,14 @@ Peripheral::Status BME280::init() {
 Status BME280::read_data(buzzverse_v1_BME280Data& data) const {
   struct sensor_value temp, press, humidity;
 
-  pm_device_runtime_get(bme280_dev);
-
   if (sensor_sample_fetch(bme280_dev) != 0) {
     LOG_ERR("Failed to fetch BME280 data");
-    pm_device_runtime_put(bme280_dev);
     return Status::READ_ERR;
   }
 
   sensor_channel_get(bme280_dev, SENSOR_CHAN_AMBIENT_TEMP, &temp);
   sensor_channel_get(bme280_dev, SENSOR_CHAN_PRESS, &press);
   sensor_channel_get(bme280_dev, SENSOR_CHAN_HUMIDITY, &humidity);
-
-  pm_device_runtime_put(bme280_dev);
 
   data.temperature = static_cast<int8_t>(temp.val1);
 
