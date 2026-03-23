@@ -9,7 +9,7 @@
 
 class BME280 : public Sensor {
  public:
-  explicit BME280(const device* dev);
+  explicit BME280();
 
   Peripheral::Status init() override;
 
@@ -24,7 +24,6 @@ class BME280 : public Sensor {
   Status get_packet(buzzverse_v1_Packet& packet) const override;
 
   void get_status(buzzverse_v1_Status& status_message) const override;
-
  private:
   const device* bme280_dev;
   bool ready{false};

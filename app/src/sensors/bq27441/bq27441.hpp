@@ -9,7 +9,7 @@
 
 class BQ27441 : public Sensor {
  public:
-  explicit BQ27441(const device* dev);
+  explicit BQ27441();
 
   Peripheral::Status init() override;
 
@@ -24,7 +24,6 @@ class BQ27441 : public Sensor {
   Status get_packet(buzzverse_v1_Packet& packet) const override;
 
   void get_status(buzzverse_v1_Status& status_message) const override;
-
  private:
   const device* bq27441_dev;
   bool ready{false};

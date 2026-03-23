@@ -7,7 +7,7 @@
 
 LOG_MODULE_REGISTER(bq27441, LOG_LEVEL_DBG);
 
-BQ27441::BQ27441(const device* dev) : bq27441_dev(dev) {}
+BQ27441::BQ27441() : bq27441_dev(DEVICE_DT_GET_ANY(ti_bq274xx)) {}
 
 using Status = Sensor::Status;
 

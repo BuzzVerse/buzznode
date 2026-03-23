@@ -7,7 +7,7 @@
 
 LOG_MODULE_REGISTER(bme280, LOG_LEVEL_DBG);
 
-BME280::BME280(const device* dev) : bme280_dev(dev) {}
+BME280::BME280() : bme280_dev(DEVICE_DT_GET_ANY(bosch_bme280)) {}
 
 using Status = Sensor::Status;
 
