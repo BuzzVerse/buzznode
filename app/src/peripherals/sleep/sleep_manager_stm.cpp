@@ -22,7 +22,7 @@ extern struct k_sem wakeup_sem;
 
 SleepManagerStm::SleepManagerStm()
     : initialized(false), sleep_timeout_ms(DEFAULT_SLEEP_DURATION_MS) {
-#ifdef CONFIG_SOC_STM32WL55XX
+#if defined(CONFIG_SOC_STM32WL55XX) || defined(CONFIG_SOC_STM32WLE5XX)
   #if DT_NODE_HAS_PROP(DT_PATH(zephyr_user), wakeup_gpios)
   static const struct gpio_dt_spec specs[] = {
     DT_FOREACH_PROP_ELEM(DT_PATH(zephyr_user), wakeup_gpios, WAKEUP_PIN_CFG)};
@@ -44,7 +44,7 @@ SleepManagerStm::SleepManagerStm()
 }
 
 Peripheral::Status SleepManagerStm::init() {
-#ifdef CONFIG_SOC_STM32WL55XX
+#if defined(CONFIG_SOC_STM32WL55XX) || defined(CONFIG_SOC_STM32WLE5XX)
   if (wakeup_pins.empty()) {
     LOG_INF("No wakeup pins to configure.");
   }
@@ -84,7 +84,7 @@ uint32_t SleepManagerStm::get_and_clear_wakeup_count() {
 }
 
 bool SleepManagerStm::is_ready() const {
-#ifdef CONFIG_SOC_STM32WL55XX
+#if defined(CONFIG_SOC_STM32WL55XX) || defined(CONFIG_SOC_STM32WLE5XX)
   return initialized && rtc.is_ready();
 #else
   return initialized;
@@ -99,7 +99,7 @@ void SleepManagerStm::enter_sleep(SleepMode mode) {
   ARG_UNUSED(mode);
   if (!initialized) return;
 
-#ifdef CONFIG_SOC_STM32WL55XX
+#if defined(CONFIG_SOC_STM32WL55XX) || defined(CONFIG_SOC_STM32WLE5XX)
   if (!rtc.is_ready() || !rtc.ensure_time_valid()) {
     k_sem_take(&wakeup_sem, K_FOREVER);
     return;

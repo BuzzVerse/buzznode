@@ -1,11 +1,11 @@
 #ifndef SLEEP_MANAGER_STM_HPP
 #define SLEEP_MANAGER_STM_HPP
 
+#include <etl/vector.h>
 #include <zephyr/device.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
-#include <etl/vector.h>
 
 #include "peripherals/rtc/rtc_peripheral.hpp"
 #include "sleep_manager_base.hpp"
@@ -24,7 +24,7 @@ class SleepManagerStm : public SleepManagerBase {
   etl::string<SLEEP_MANAGER_NAME_SIZE> get_name() const override;
 
   uint32_t get_and_clear_wakeup_count() override;
-  
+
   void enter_sleep(SleepMode mode) override;
   void set_sleep_duration(int duration_ms) override;
   void timed_sleep() override;
@@ -32,11 +32,11 @@ class SleepManagerStm : public SleepManagerBase {
  private:
   static constexpr size_t MAX_WAKEUP_PINS = 4;
   etl::vector<WakeupPin, MAX_WAKEUP_PINS> wakeup_pins;
-  
+
   bool initialized;
   int sleep_timeout_ms;
 
-#ifdef CONFIG_SOC_STM32WL55XX
+#if defined(CONFIG_SOC_STM32WL55XX) || defined(CONFIG_SOC_STM32WLE5XX)
   RtcPeripheral rtc;
 #endif
 };
