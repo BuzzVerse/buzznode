@@ -14,6 +14,8 @@ void wkup_isr(const struct device* dev, struct gpio_callback* cb, uint32_t pins)
   if (current_time - last_wkup_time > CONFIG_GPIO_WAKEUP_DEBOUNCE_MS) {
     last_wkup_time = current_time;
     wkup_count++;
+
+    LOG_INF("Wakeup event count incremented: %u", wkup_count);
   }
 }
 }
