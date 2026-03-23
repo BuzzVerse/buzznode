@@ -6,7 +6,7 @@
 #include "peripheral.hpp"
 #include "sleep_manager_base.hpp"
 
-#if defined(CONFIG_SOC_STM32WL55XX)
+#if defined(CONFIG_SOC_SERIES_STM32WLX)
   #include "sleep_manager_stm.hpp"
 typedef SleepManagerStm SleepManagerImpl;
 #elif defined(CONFIG_SOC_ESP32S3)

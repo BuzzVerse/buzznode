@@ -36,7 +36,7 @@ class SleepManagerStm : public SleepManagerBase {
   bool initialized;
   int sleep_timeout_ms;
 
-#if defined(CONFIG_SOC_STM32WL55XX) || defined(CONFIG_SOC_STM32WLE5XX)
+#if defined(CONFIG_SOC_SERIES_STM32WLX)
   RtcPeripheral rtc;
 #endif
 };

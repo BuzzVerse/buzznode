@@ -81,6 +81,13 @@ config SLEEP_TIME_MS
     help
         Duration for which the device will sleep before waking up. This value is in milliseconds.
 
+config GPIO_WAKEUP_DEBOUNCE_MS
+    int "GPIO Wakeup Debounce Time (ms)"
+    default 1000
+    help
+      Time in milliseconds to ignore subsequent transitions on wakeup pins
+      to prevent multiple triggers from switch bouncing.
+
 config ENABLE_ANALOG
     bool "Enable Analog Sensor"
     default n
