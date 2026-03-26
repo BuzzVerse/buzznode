@@ -1,26 +1,38 @@
 #include "sleep_manager_stm.hpp"
 
+#include <zephyr/kernel.h>
+#include <zephyr/sys/atomic.h>
+
 LOG_MODULE_REGISTER(sleep_mgr_stm, LOG_LEVEL_INF);
 
+/* Use the real global semaphore defined elsewhere */
+extern struct k_sem wakeup_sem;
+
 namespace {
-volatile uint32_t wkup_count = 0;
-volatile uint32_t last_wkup_time = 0;
 
-void wkup_isr(const struct device* dev, struct gpio_callback* cb, uint32_t pins) {
-  uint32_t current_time = k_uptime_get_32();
+/*
+ * ISR/thread shared state:
+ * - Use atomics (volatile is NOT sufficient for concurrency).
+ * - Keep ISR extremely small: no LOG_* calls here.
+ */
+static atomic_t wkup_count;
+static atomic_t last_wkup_time;
 
-  LOG_INF("Wakeup ISR triggered on device %s, pins 0x%08x", dev->name, pins);
+static void wkup_isr(const struct device* dev, struct gpio_callback* cb, uint32_t pins) {
+  ARG_UNUSED(dev);
+  ARG_UNUSED(cb);
+  ARG_UNUSED(pins);
 
-  if (current_time - last_wkup_time > CONFIG_GPIO_WAKEUP_DEBOUNCE_MS) {
-    last_wkup_time = current_time;
-    wkup_count++;
+  const uint32_t now = k_uptime_get_32();
+  const uint32_t last = (uint32_t)atomic_get(&last_wkup_time);
 
-    LOG_INF("Wakeup event count incremented: %u", wkup_count);
+  if ((uint32_t)(now - last) > CONFIG_GPIO_WAKEUP_DEBOUNCE_MS) {
+    atomic_set(&last_wkup_time, now);
+    atomic_inc(&wkup_count);
   }
 }
-}
 
-extern struct k_sem wakeup_sem;
+}  // namespace
 
 #define WAKEUP_PIN_CFG(node_id, prop, idx) GPIO_DT_SPEC_GET_BY_IDX(node_id, prop, idx),
 
@@ -64,9 +76,10 @@ Peripheral::Status SleepManagerStm::init() {
       continue;
     }
 
-    gpio_pin_interrupt_configure_dt(&pin.spec, GPIO_INT_EDGE_TO_ACTIVE);
+    (void)gpio_pin_interrupt_configure_dt(&pin.spec, GPIO_INT_EDGE_TO_ACTIVE);
+
     gpio_init_callback(&pin.cb_data, wkup_isr, BIT(pin.spec.pin));
-    gpio_add_callback(pin.spec.port, &pin.cb_data);
+    (void)gpio_add_callback(pin.spec.port, &pin.cb_data);
 
     LOG_INF("Wakeup source initialized: Pin %d on %s", pin.spec.pin, pin.spec.port->name);
   }
@@ -82,9 +95,8 @@ Peripheral::Status SleepManagerStm::init() {
 }
 
 uint32_t SleepManagerStm::get_and_clear_wakeup_count() {
-  uint32_t current_count = wkup_count;
-  wkup_count = 0;
-  return current_count;
+  /* atomically get-and-clear */
+  return (uint32_t)atomic_set(&wkup_count, 0);
 }
 
 bool SleepManagerStm::is_ready() const {
@@ -101,11 +113,17 @@ etl::string<SLEEP_MANAGER_NAME_SIZE> SleepManagerStm::get_name() const {
 
 void SleepManagerStm::enter_sleep(SleepMode mode) {
   ARG_UNUSED(mode);
-  if (!initialized) return;
+  if (!initialized) {
+    return;
+  }
 
 #if defined(CONFIG_SOC_SERIES_STM32WLX)
   if (!rtc.is_ready() || !rtc.ensure_time_valid()) {
-    k_sem_take(&wakeup_sem, K_FOREVER);
+    /*
+     * Wait until something wakes us (wkup_isr gives wakeup_sem).
+     * This is thread context; safe to block here.
+     */
+    (void)k_sem_take(&wakeup_sem, K_FOREVER);
     return;
   }
 
@@ -117,16 +135,21 @@ void SleepManagerStm::enter_sleep(SleepMode mode) {
       rtc.set_alarm(alarm_time);
     }
   }
-  k_sem_take(&wakeup_sem, K_FOREVER);
+
+  (void)k_sem_take(&wakeup_sem, K_FOREVER);
 #else
   k_msleep(sleep_timeout_ms);
 #endif
 }
 
 void SleepManagerStm::set_sleep_duration(int duration_ms) {
-  if (duration_ms > 0) sleep_timeout_ms = duration_ms;
+  if (duration_ms > 0) {
+    sleep_timeout_ms = duration_ms;
+  }
 }
 
 void SleepManagerStm::timed_sleep() {
-  if (initialized) k_msleep(sleep_timeout_ms);
+  if (initialized) {
+    k_msleep(sleep_timeout_ms);
+  }
 }
