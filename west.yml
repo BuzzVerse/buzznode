@@ -8,12 +8,12 @@ manifest:
   projects:
     - name: zephyr
       url: https://github.com/zephyrproject-rtos/zephyr
-      revision: v4.0.0
+      revision: a143581
       import:
         name-allowlist:
           - hal_espressif
           - hal_stm32
-          - cmsis
+          - cmsis_6
           - loramac-node
           - mcuboot
           - nanopb

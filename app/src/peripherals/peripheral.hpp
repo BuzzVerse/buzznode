@@ -22,6 +22,7 @@ class Peripheral {
     ERROR_INVALID_PARAM = -3,    /**< Invalid parameter provided */
     ERROR_NOT_INITIALIZED = -4,  /**< Initialization failed */
     ERROR_HW_CONFIG_FAILED = -5, /**< Hardware configuration failed */
+    ERROR_ALREADY_INITIALIZED = -6 /**< Peripheral is already initialized */
   };
 
   /**

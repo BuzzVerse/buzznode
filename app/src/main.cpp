@@ -7,11 +7,11 @@
 
 #include "Application.hpp"
 #include "peripherals/lorawan_handler/lorawan_handler.hpp"
+#include "peripherals/sleep/sleep_manager.hpp"
 #include "sensors/bme280/bme280.hpp"
 #include "sensors/analog/analog.hpp"
 #include "sensors/bq27441/bq27441.hpp"
 #include "utils/banner.hpp"
-#include "utils/sleep-manager.hpp"
 
 LOG_MODULE_REGISTER(main_entry, LOG_LEVEL_DBG);
 
@@ -24,6 +24,7 @@ LOG_MODULE_REGISTER(main_entry, LOG_LEVEL_DBG);
 static const struct adc_dt_spec soil_sensor_adc_spec =
     ADC_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 0);
 
+K_SEM_DEFINE(wakeup_sem, 0, 1);
 
 int main(void) {
   printk("%s\n", APP_ASCII_BANNER);
@@ -34,7 +35,7 @@ int main(void) {
 
   // Array of available sensors
   etl::array<etl::unique_ptr<Sensor>, NUMBER_OF_SENSORS> sensors {
-	etl::unique_ptr<BME280>(etl::move(&bme280)),
+  etl::unique_ptr<BME280>(etl::move(&bme280)),
 #ifdef CONFIG_ENABLE_ANALOG
   etl::unique_ptr<Analog>(etl::move(&analog)),
 #endif
@@ -43,12 +44,12 @@ int main(void) {
   BQ27441 bq27441(DEVICE_DT_GET_ANY(ti_bq274xx));
   LoRaWANHandler lorawan(bq27441);
 
-  etl::unique_ptr<SleepManager> p_sleep_manager(nullptr);
 #ifdef CONFIG_ENABLE_DEVICE_SLEEP
-  p_sleep_manager = etl::unique_ptr<SleepManager>(new SleepManager);
+  SleepManager sleep_manager;
+  Application app(sensors, lorawan, &sleep_manager);
+#else
+  Application app(sensors, lorawan, nullptr);
 #endif
-
-  Application app(sensors, lorawan, etl::move(p_sleep_manager));
 
   if (!app.init()) {
     LOG_ERR("Critical application initialization failed!");
@@ -65,18 +66,16 @@ int main(void) {
     sys_reboot(SYS_REBOOT_COLD);
   }
 
-  app.run_cycle();
+  while (true) {
+    app.run_cycle();
 
 #ifdef CONFIG_ENABLE_DEVICE_SLEEP
-  app.enter_low_power_mode(APP_SLEEP_DURATION_MS);
-  LOG_WRN("Execution continued after enter_low_power_mode - this is unexpected for deep sleep.");
+    app.enter_low_power_mode(APP_SLEEP_DURATION_MS);
 #else
-  LOG_INF("Device sleep not enabled. Entering polling loop.");
-  while (true) {
-    k_sleep(K_MSEC(APP_SLEEP_DURATION_MS));
-    app.run_cycle();
-  }
+    LOG_INF("Device sleep not enabled. Entering polling loop.");
+    k_msleep(APP_SLEEP_DURATION_MS);
 #endif
+  }
 
   return 0;  // Should not be reached
 }

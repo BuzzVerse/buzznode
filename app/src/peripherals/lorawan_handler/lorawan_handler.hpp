@@ -2,7 +2,6 @@
 #define LORAWAN_HANDLER_HPP
 
 #include <etl/array.h>
-#include <etl/memory.h>
 #include <etl/string.h>
 
 #include "buzzverse/bq27441.pb.h"
