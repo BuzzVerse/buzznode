@@ -84,35 +84,34 @@ void Application::generate_init_failure_report(buzzverse_v1_Packet& packet) {
 }
 
 void Application::run_cycle() {
-    k_msleep(50);
-    LOG_INF("--- Starting Application Cycle ---");
+  LOG_INF("--- Starting Application Cycle ---");
 
-    if (m_sleep_manager) {
-        uint32_t count = m_sleep_manager->get_and_clear_wakeup_count();
-        
-        if (count > 0) {
-            LOG_INF("Detected %u wakeup events. Sending report...", count);
-            
-            buzzverse_v1_Packet packet = buzzverse_v1_Packet_init_default;
-            packet.which_data = buzzverse_v1_Packet_counter_tag;
-            packet.data.counter.counter = count;
+  if (m_sleep_manager) {
+    uint32_t count = m_sleep_manager->get_and_clear_wakeup_count();
 
-            send_lora_packet(packet);
-        }
+    if (count > 0) {
+      LOG_INF("Detected %u wakeup events. Sending report...", count);
+
+      buzzverse_v1_Packet packet = buzzverse_v1_Packet_init_default;
+      packet.which_data = buzzverse_v1_Packet_counter_tag;
+      packet.data.counter.counter = count;
+
+      send_lora_packet(packet);
     }
+  }
 
-    for (auto& sensor : m_sensors) {
-        if (sensor && sensor->is_ready()) {
-            buzzverse_v1_Packet packet = buzzverse_v1_Packet_init_default;
-            if (sensor->get_packet(packet) == Sensor::Status::OK) {
-                send_lora_packet(packet);
-            } else {
-                LOG_ERR("Failed to get %s packet", sensor->get_name().c_str());
-            }
-        }
+  for (auto& sensor : m_sensors) {
+    if (sensor && sensor->is_ready()) {
+      buzzverse_v1_Packet packet = buzzverse_v1_Packet_init_default;
+      if (sensor->get_packet(packet) == Sensor::Status::OK) {
+        send_lora_packet(packet);
+      } else {
+        LOG_ERR("Failed to get %s packet", sensor->get_name().c_str());
+      }
     }
+  }
 
-    LOG_INF("--- Application Cycle Complete ---");
+  LOG_INF("--- Application Cycle Complete ---");
 }
 
 void Application::enter_low_power_mode(int sleep_duration_ms) {

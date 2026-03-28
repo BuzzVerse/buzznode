@@ -94,8 +94,9 @@ config ENABLE_ANALOG
     help
         Enable support for Analog sensor.
 
-source "Kconfig.zephyr"
 endmenu
+
+source "Kconfig.zephyr"
 
 module = APP
 module-str = APP

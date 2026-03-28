@@ -8,7 +8,7 @@ manifest:
   projects:
     - name: zephyr
       url: https://github.com/zephyrproject-rtos/zephyr
-      revision: a143581
+      revision: v4.3-branch
       import:
         name-allowlist:
           - hal_espressif

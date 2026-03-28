@@ -1,0 +1,82 @@
+
+/ {
+    chosen {
+		zephyr,console = &lpuart1;
+		zephyr,shell-uart = &lpuart1;
+	};
+    
+    aliases {
+        bme280-i2c = &i2c2;
+    };
+
+    zephyr,user {
+        io-channels = <&adc1 6>;
+        io-channels-names = "a0";
+        wakeup-gpios = <&gpiob 5 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+    };
+};
+
+
+
+&adc1 {
+    status = "okay";
+    st,adc-clock-source = "SYNC";
+    st,adc-prescaler = <1>;
+
+    #address-cells = <1>;
+    #size-cells = <0>;
+
+    soil_sensor: channel@6 {
+        reg = <6>;
+        zephyr,gain = "ADC_GAIN_1";
+        zephyr,reference = "ADC_REF_INTERNAL";
+        zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+        zephyr,resolution = <12>;
+    };
+};
+
+
+&pinctrl {
+    i2c2_scl_pa12_sleep: i2c2_scl_pa12_sleep {
+        pinmux = <STM32_PINMUX('A', 12, ANALOG)>;
+    };
+
+    i2c2_sda_pa11_sleep: i2c2_sda_pa11_sleep {
+        pinmux = <STM32_PINMUX('A', 11, ANALOG)>;
+    };
+};
+
+&lpuart1 {
+	pinctrl-0 = <&lpuart1_tx_pa2 &lpuart1_rx_pa3>;
+	pinctrl-names = "default";
+	current-speed = <115200>;
+	status = "okay";
+};
+
+&usart1 {
+    status = "disabled";
+};
+
+&usart2 {
+    status = "disabled";
+};
+
+&i2c2 {
+    /delete-property/ pinctrl-0;
+    /delete-property/ pinctrl-names;
+    
+    pinctrl-0 = <&i2c2_scl_pa12 &i2c2_sda_pa11>;
+    pinctrl-1 = <&i2c2_scl_pa12_sleep &i2c2_sda_pa11_sleep>;
+    pinctrl-names = "default", "sleep";
+
+    bme280@76 {
+        compatible = "bosch,bme280";
+        reg = <0x76>;
+        status = "okay";
+    };
+};
+
+&pwr {
+    status = "okay";
+
+};

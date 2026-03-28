@@ -74,3 +74,6 @@ __pycache__/
 
 # docs
 /doc/_build*
+
+# MacOS
+.DS_Store
