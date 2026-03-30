@@ -62,10 +62,6 @@
 };
 
 &i2c2 {
-    /delete-property/ pinctrl-0;
-    /delete-property/ pinctrl-names;
-    
-    pinctrl-0 = <&i2c2_scl_pa12 &i2c2_sda_pa11>;
     pinctrl-1 = <&i2c2_scl_pa12_sleep &i2c2_sda_pa11_sleep>;
     pinctrl-names = "default", "sleep";
 
@@ -78,5 +74,4 @@
 
 &pwr {
     status = "okay";
-
 };

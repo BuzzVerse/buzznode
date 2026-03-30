@@ -2,6 +2,8 @@
 #include <zephyr/drivers/adc.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/pm/device.h>
+#include <zephyr/pm/policy.h>
 #include <zephyr/sys/printk.h>
 #include <zephyr/sys/reboot.h>
 
@@ -11,6 +13,7 @@
 #include "sensors/analog/analog.hpp"
 #include "sensors/bme280/bme280.hpp"
 #include "sensors/bq27441/bq27441.hpp"
+#include "utils/banner.hpp"
 
 LOG_MODULE_REGISTER(main_entry, LOG_LEVEL_DBG);
 
@@ -26,12 +29,15 @@ static const struct adc_dt_spec soil_sensor_adc_spec =
 K_SEM_DEFINE(wakeup_sem, 0, 1);
 
 int main(void) {
+  // Lock all PM states during init
+  pm_policy_state_all_lock_get();
+
+  printk("%s\n", APP_ASCII_BANNER);
   LOG_INF("===== Buzzverse Node System Booting (Zephyr Log) =====");
 
   BME280 bme280(DEVICE_DT_GET_ANY(bosch_bme280));
   Analog analog(&soil_sensor_adc_spec);
 
-  // Array of available sensors
   etl::array<etl::unique_ptr<Sensor>, NUMBER_OF_SENSORS> sensors{
     etl::unique_ptr<BME280>(etl::move(&bme280)),
 #ifdef CONFIG_ENABLE_ANALOG
@@ -64,8 +70,15 @@ int main(void) {
     sys_reboot(SYS_REBOOT_COLD);
   }
 
+  // Release PM lock after init — allow sleep
+  pm_policy_state_all_lock_put();
+
   while (true) {
     app.run_cycle();
+
+    // Manually suspend I2C before sleep for power savings
+    const struct device* i2c_dev = DEVICE_DT_GET(DT_NODELABEL(i2c2));
+    pm_device_action_run(i2c_dev, PM_DEVICE_ACTION_SUSPEND);
 
 #ifdef CONFIG_ENABLE_DEVICE_SLEEP
     app.enter_low_power_mode(APP_SLEEP_DURATION_MS);
@@ -73,7 +86,10 @@ int main(void) {
     LOG_INF("Device sleep not enabled. Entering polling loop.");
     k_msleep(APP_SLEEP_DURATION_MS);
 #endif
+
+    // Resume I2C after wake
+    pm_device_action_run(i2c_dev, PM_DEVICE_ACTION_RESUME);
   }
 
-  return 0;  // Should not be reached
+  return 0;
 }
