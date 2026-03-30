@@ -98,7 +98,3 @@ Status DustSensor::get_packet(buzzverse_v1_Packet& packet) const {
     LOG_DBG("Packet constructed with dust sensor data (as analog).");
     return Status::OK;
 }
-
-void DustSensor::get_status(buzzverse_v1_Status& status_message) const {
-    status_message.dust_sensor_status = status;
-}
