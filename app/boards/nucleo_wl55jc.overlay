@@ -31,7 +31,7 @@
     #address-cells = <1>;
     #size-cells = <0>;
 
-    soil_sensor: channel@6 {
+    analog_input: channel@6 {
         reg = <6>;
         zephyr,gain = "ADC_GAIN_1";
         zephyr,reference = "ADC_REF_INTERNAL";

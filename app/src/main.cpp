@@ -22,7 +22,7 @@ LOG_MODULE_REGISTER(main_entry, LOG_LEVEL_DBG);
   #define APP_SLEEP_DURATION_MS 10000
 #endif
 
-static const struct adc_dt_spec soil_sensor_adc_spec =
+static const struct adc_dt_spec analog_input_adc_spec =
     ADC_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 0);
 
 #ifdef CONFIG_ENABLE_DUST_SENSOR
@@ -36,9 +36,12 @@ int main(void) {
   LOG_INF("===== Buzzverse Node System Booting (Zephyr Log) =====");
 
   BME280 bme280(DEVICE_DT_GET_ANY(bosch_bme280));
-  Analog analog(&soil_sensor_adc_spec);
+#ifdef CONFIG_ENABLE_ANALOG
+  Analog analog(&analog_input_adc_spec);
+#endif
+
 #ifdef CONFIG_ENABLE_DUST_SENSOR
-  DustSensor dust_sensor(&soil_sensor_adc_spec, &iled_gpio_spec);
+  DustSensor dust_sensor(&analog_input_adc_spec, &iled_gpio_spec);
 #endif
 
   // Array of available sensors
