@@ -1,0 +1,23 @@
+patches:
+  - path: 0001-boards-rak3172-add-lptim1-as-low-power-tick-source.patch
+    sha256sum: 1cc110d2dbffd1f900823fbb2ba1b2eb2f2e4371dfb79c630b74a9e0ccd600b0
+    module: zephyr
+    author: Olaf Hubert Bykowski
+    email: olafbykowski1@gmail.com
+    date: 2026-03-30
+    upstreamable: true
+    comments: |
+      Add stm32_lp_tick_source label pointing to lptim1 on RAK3172 board
+      to enable LPTIM-based tick source for low-power operation.
+
+  - path: 0002-drivers-i2c-stm32-reinit-I2C-timing-after-PM-resume-.patch
+    sha256sum: a37a120178f8813a21f0a545a2852155b2f791220e63e4e03889035b1eb820ad
+    module: zephyr
+    author: Olaf Hubert Bykowski
+    email: olafbykowski1@gmail.com
+    date: 2026-03-30
+    upstreamable: true
+    comments: |
+      On STM32WLx, I2C timing register is lost when the peripheral is
+      clock-gated during PM suspend. Save the clock frequency during
+      runtime configuration and reconfigure timing on PM resume.
