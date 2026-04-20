@@ -29,18 +29,15 @@ int main(void) {
   printk("%s\n", APP_ASCII_BANNER);
   LOG_INF("===== Buzzverse Node System Booting (Zephyr Log) =====");
 
-  BME280 bme280(DEVICE_DT_GET_ANY(bosch_bme280));
-  Analog analog(&soil_sensor_adc_spec);
-
-  // Array of available sensors
+  // Array of supported sensors
   etl::array<etl::unique_ptr<Sensor>, NUMBER_OF_SENSORS> sensors {
-	etl::unique_ptr<BME280>(etl::move(&bme280)),
+	  etl::unique_ptr<BME280>(new BME280()),
 #ifdef CONFIG_ENABLE_ANALOG
-  etl::unique_ptr<Analog>(etl::move(&analog)),
+	etl::unique_ptr<Analog>(new Analog(&soil_sensor_adc_spec)),
 #endif
   };
 
-  BQ27441 bq27441(DEVICE_DT_GET_ANY(ti_bq274xx));
+  BQ27441 bq27441;
   LoRaWANHandler lorawan(bq27441);
 
   etl::unique_ptr<SleepManager> p_sleep_manager(nullptr);
